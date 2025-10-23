@@ -151,37 +151,57 @@ function handleDownloadPDF() {
         return;
     }
 
-    const athleteName = document.getElementById('athleteName').value.trim();
-    const filename = `relatorio-${athleteName.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+    showStatus('loading', '📄 Preparando relatório para impressão...');
 
-    showStatus('loading', 'Gerando PDF... Aguarde...');
+    // Abrir em nova aba
+    const newWindow = window.open('', '_blank', 'width=1200,height=800');
+    
+    if (!newWindow) {
+        showStatus('error', 'Bloqueador de pop-up ativo! Permita pop-ups para gerar PDF.');
+        return;
+    }
 
-    // Criar elemento temporário com o HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = generatedHTML;
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    tempDiv.style.width = '1200px';
-    document.body.appendChild(tempDiv);
+    newWindow.document.write(generatedHTML);
+    newWindow.document.close();
 
-    // Configurações do PDF
-    const opt = {
-        margin: 10,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    // Aguardar carregamento completo
+    newWindow.onload = function() {
+        showStatus('loading', '📊 Carregando gráficos e dados...');
+        
+        // Aguardar 1 segundo para CSS carregar
+        setTimeout(() => {
+            // Abrir o dashboard automaticamente
+            if (typeof newWindow.toggleDashboard === 'function') {
+                newWindow.toggleDashboard();
+                showStatus('loading', '📈 Renderizando dashboard...');
+            }
+            
+            // Aguardar gráficos Chart.js renderizarem (3 segundos)
+            setTimeout(() => {
+                showStatus('loading', '🖨️ Abrindo janela de impressão...');
+                
+                // Aguardar mais 1 segundo e abrir impressão
+                setTimeout(() => {
+                    newWindow.print();
+                    showStatus('success', '✅ Pronto! Escolha "Salvar como PDF" na janela de impressão');
+                    
+                    // Limpar mensagem após 8 segundos
+                    setTimeout(() => {
+                        const statusEl = document.getElementById('status');
+                        if (statusEl) statusEl.classList.add('hidden');
+                    }, 8000);
+                }, 1000);
+            }, 3000);
+        }, 1000);
     };
 
-    // Gerar PDF
-    html2pdf().set(opt).from(tempDiv).save().then(() => {
-        document.body.removeChild(tempDiv);
-        showStatus('success', '✅ PDF baixado com sucesso!');
-    }).catch(err => {
-        document.body.removeChild(tempDiv);
-        console.error('Erro ao gerar PDF:', err);
-        showStatus('error', 'Erro ao gerar PDF. Tente novamente.');
-    });
+    // Fallback se onload não disparar
+    setTimeout(() => {
+        const statusEl = document.getElementById('status');
+        if (statusEl && !statusEl.classList.contains('hidden')) {
+            showStatus('error', 'Erro ao carregar. Tente novamente.');
+        }
+    }, 10000);
 }
 
 // Abrir em nova aba
