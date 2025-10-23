@@ -5,7 +5,7 @@
 
 // Carregar template HTML
 async function loadTemplate(templateType) {
-    const filename = templateType === 'triathlon' ? 'index.html' : 'chicago-marathon.html';
+    const filename = templateType === 'triathlon' ? 'triathlon-template.html' : 'marathon-template.html';
 
     const response = await fetch(filename);
     if (!response.ok) {
