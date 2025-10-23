@@ -85,12 +85,12 @@ function processForTriathlon(csvData, athleteName, eventName, eventDate, eventLo
     };
 }
 
-// Processar CSV para template Maratona
-function processForMarathon(csvData, athleteName, eventName, eventDate) {
+// Processar CSV para template Corrida
+function processForCorrida(csvData, athleteName, eventName, eventDate) {
     const runWorkouts = csvData.filter(w => w.WorkoutType === 'Run');
     const stats = calculateDisciplineStats(runWorkouts);
 
-    // Projetar tempo de maratona baseado nos treinos
+    // Projetar tempo baseado nos treinos
     const projectedTime = projectMarathonTime(runWorkouts);
     const targetPace = calculateTargetPace(projectedTime);
 
@@ -102,7 +102,7 @@ function processForMarathon(csvData, athleteName, eventName, eventDate) {
     return {
         // Informações básicas
         athleteName: athleteName || 'Atleta',
-        eventName: eventName || 'Maratona',
+        eventName: eventName || 'Corrida',
         eventDate: eventDate || 'Data da Prova',
 
         // Métricas

@@ -16,6 +16,7 @@ function initializeApp() {
     document.getElementById('csvFile').addEventListener('change', handleFileSelect);
     document.getElementById('generatorForm').addEventListener('submit', handleGenerate);
     document.getElementById('downloadBtn').addEventListener('click', handleDownload);
+    document.getElementById('downloadPdfBtn').addEventListener('click', handleDownloadPDF);
     document.getElementById('openBtn').addEventListener('click', handleOpen);
 
     // Mostrar/ocultar campo de localização
@@ -111,7 +112,7 @@ async function handleGenerate(event) {
         if (templateType === 'triathlon') {
             processedData = processForTriathlon(csvData, athleteName, eventName, eventDate, eventLocation);
         } else {
-            processedData = processForMarathon(csvData, athleteName, eventName, eventDate);
+            processedData = processForCorrida(csvData, athleteName, eventName, eventDate);
         }
 
         showStatus('loading', 'Carregando template...');
@@ -141,6 +142,46 @@ function handleDownload() {
 
     downloadHTML(generatedHTML, filename);
     showStatus('success', '✅ Download iniciado!');
+}
+
+// Download PDF
+function handleDownloadPDF() {
+    if (!generatedHTML) {
+        showStatus('error', 'Nenhum relatório gerado ainda');
+        return;
+    }
+
+    const athleteName = document.getElementById('athleteName').value.trim();
+    const filename = `relatorio-${athleteName.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+
+    showStatus('loading', 'Gerando PDF... Aguarde...');
+
+    // Criar elemento temporário com o HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = generatedHTML;
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.width = '1200px';
+    document.body.appendChild(tempDiv);
+
+    // Configurações do PDF
+    const opt = {
+        margin: 10,
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Gerar PDF
+    html2pdf().set(opt).from(tempDiv).save().then(() => {
+        document.body.removeChild(tempDiv);
+        showStatus('success', '✅ PDF baixado com sucesso!');
+    }).catch(err => {
+        document.body.removeChild(tempDiv);
+        console.error('Erro ao gerar PDF:', err);
+        showStatus('error', 'Erro ao gerar PDF. Tente novamente.');
+    });
 }
 
 // Abrir em nova aba
