@@ -121,34 +121,42 @@ function renderTriathlonTemplate(html, data) {
 
 // Renderizar template Corrida
 function renderCorridaTemplate(html, data) {
-    // Substituir informações básicas
-    html = html.replace(/Chicago Marathon 2025/g, data.eventName);
-    html = html.replace(/Cauê Todeschini/g, data.athleteName);
-    html = html.replace(/12 de Outubro 2025/g, data.eventDate);
+    // ==========================================
+    // SUBSTITUIÇÃO COM PLACEHOLDERS LIMPA (SEM REGEX PERIGOSOS)
+    // ==========================================
 
-    // Substituir métricas (TODOS os lugares)
-    html = html.replace(/\b53\b/g, data.totalWorkouts);
-    html = html.replace(/775/g, data.totalKm);
-    html = html.replace(/67\.8/g, data.totalHours);
-    html = html.replace(/5:15\/km/g, data.avgPace);
-    html = html.replace(/\b145\b/g, data.avgHR);
+    // Informações básicas
+    html = html.replace(/{{ATHLETE_NAME}}/g, data.athleteName);
+    html = html.replace(/{{EVENT_NAME}}/g, data.eventName);
+    html = html.replace(/{{EVENT_DATE}}/g, data.eventDate);
 
-    // Substituir métricas no rodapé
-    html = html.replace(/Este relatório foi desenvolvido com base nos dados de treino de Cauê Todeschini/g,
-        `Este relatório foi desenvolvido com base nos dados de treino de ${data.athleteName}`);
+    // Período de preparação
+    html = html.replace(/{{TRAINING_PERIOD}}/g, data.trainingPeriod);
+    html = html.replace(/{{TRAINING_PERIOD_FULL}}/g, data.trainingPeriodFull);
 
-    // Substituir período de preparação e metas
-    html = html.replace(/Julho - Setembro/g, 'Período de Preparação');
-    html = html.replace(/Julho - Setembro 2025/g, 'Período de Preparação');
+    // Métricas gerais
+    html = html.replace(/{{TOTAL_WORKOUTS}}/g, data.totalWorkouts);
+    html = html.replace(/{{TOTAL_KM}}/g, data.totalKm);
+    html = html.replace(/{{TOTAL_HOURS}}/g, data.totalHours);
+    html = html.replace(/{{AVG_PACE}}/g, data.avgPace);
+    html = html.replace(/{{AVG_HR}}/g, data.avgHR);
 
-    // Substituir projeções e metas
-    if (data.projectedTime) {
-        html = html.replace(/3:30:00/g, data.projectedTime);
-        html = html.replace(/3h20 - 3h25/g, data.projectedTime);
-    }
-    if (data.targetPace) {
-        html = html.replace(/5:00\/km/g, data.targetPace);
-    }
+    // Longões ≥20km
+    html = html.replace(/{{LONG_RUNS_COUNT}}/g, data.longRunsCount);
+    html = html.replace(/{{LONG_RUNS_AVG_PACE}}/g, data.longRunsAvgPace);
+    html = html.replace(/{{LONG_RUNS_AVG_HR}}/g, data.longRunsAvgHR);
+    html = html.replace(/{{LONG_RUNS_AVG_POWER}}/g, data.longRunsAvgPower);
+    html = html.replace(/{{LONG_RUNS_MAX_HR}}/g, data.longRunsMaxHR);
+    html = html.replace(/{{KEY_LONG_RUN}}/g, data.keyLongRun);
+
+    // Projeções
+    html = html.replace(/{{PROJECTED_TIME}}/g, data.projectedTime);
+    html = html.replace(/{{TARGET_PACE}}/g, data.targetPace);
+
+    // Dados para gráficos do dashboard
+    html = html.replace(/{{CHART_TOTAL_RUNS}}/g, data.chartData.totalRuns);
+    html = html.replace(/{{CHART_TOTAL_KM}}/g, data.chartData.totalKm);
+    html = html.replace(/{{CHART_TOTAL_HOURS}}/g, data.chartData.totalHours);
 
     // Injetar dados reais dos gráficos
     const chartDataScript = `

@@ -130,6 +130,10 @@ function processForCorrida(csvData, athleteName, eventName, eventDate) {
     const weeklyVolumes = calculateWeeklyVolumes(runWorkouts);
     const paceByDistance = calculatePaceByDistance(runWorkouts);
 
+    // NOVOS CÁLCULOS: Longões e métricas específicas
+    const longRunsData = calculateLongRunsData(runWorkouts);
+    const trainingPeriod = calculateTrainingPeriod(runWorkouts);
+
     return {
         // Informações básicas
         athleteName: athleteName || 'Atleta',
@@ -149,6 +153,18 @@ function processForCorrida(csvData, athleteName, eventName, eventDate) {
 
         // Melhor treino
         bestWorkout: findBestRunWorkout(runWorkouts),
+
+        // NOVOS: Dados dos longões ≥20km
+        longRunsCount: longRunsData.count,
+        longRunsAvgPace: longRunsData.avgPace,
+        longRunsAvgHR: longRunsData.avgHR,
+        longRunsAvgPower: longRunsData.avgPower,
+        longRunsMaxHR: longRunsData.maxHR,
+        keyLongRun: longRunsData.keyLongRun,
+
+        // NOVO: Período de preparação
+        trainingPeriod: trainingPeriod.short,
+        trainingPeriodFull: trainingPeriod.full,
 
         // Dados para gráficos (usados pelo dashboard visual)
         chartData: {
@@ -448,6 +464,109 @@ function calculatePaceByDistance(runWorkouts) {
         medium: calculateAvgPace(ranges.medium),
         long: calculateAvgPace(ranges.long),
         veryLong: calculateAvgPace(ranges.veryLong)
+    };
+}
+
+// Calcular dados dos longões ≥20km
+function calculateLongRunsData(runWorkouts) {
+    // Filtrar longões ≥20km
+    const longRuns = runWorkouts.filter(w => {
+        const dist = parseFloat(w.DistanceInMeters) || 0;
+        return dist >= 20000;
+    });
+
+    if (longRuns.length === 0) {
+        return {
+            count: 0,
+            avgPace: 'N/A',
+            avgHR: 'N/A',
+            avgPower: 'N/A',
+            maxHR: 'N/A',
+            keyLongRun: 'Nenhum longão ≥20km encontrado'
+        };
+    }
+
+    // Calcular médias dos longões
+    const velocities = longRuns.map(w => parseFloat(w.VelocityAverage)).filter(v => !isNaN(v) && v > 0);
+    const avgVelocity = velocities.length > 0 ? velocities.reduce((sum, v) => sum + v, 0) / velocities.length : 0;
+    const avgPace = calculateRunPace(avgVelocity);
+
+    const heartRates = longRuns.map(w => parseFloat(w.HeartRateAverage)).filter(hr => !isNaN(hr) && hr > 0);
+    const avgHR = heartRates.length > 0 ? Math.round(heartRates.reduce((sum, hr) => sum + hr, 0) / heartRates.length) : 0;
+
+    const powers = longRuns.map(w => parseFloat(w.PowerAverage)).filter(p => !isNaN(p) && p > 0);
+    const avgPower = powers.length > 0 ? Math.round(powers.reduce((sum, p) => sum + p, 0) / powers.length) : 0;
+
+    const allHRs = longRuns.map(w => parseFloat(w.HeartRateMax)).filter(hr => !isNaN(hr) && hr > 0);
+    const maxHR = allHRs.length > 0 ? Math.max(...allHRs) : 0;
+
+    // Encontrar o longão chave (maior distância)
+    const bestLongRun = longRuns.reduce((best, current) => {
+        const currentDist = parseFloat(current.DistanceInMeters) || 0;
+        const bestDist = parseFloat(best.DistanceInMeters) || 0;
+        return currentDist > bestDist ? current : best;
+    }, longRuns[0]);
+
+    const keyDistance = ((parseFloat(bestLongRun.DistanceInMeters) || 0) / 1000).toFixed(0);
+    const keyPace = calculateRunPace(parseFloat(bestLongRun.VelocityAverage));
+    const keyDate = new Date(bestLongRun.WorkoutDay).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const keyHR = Math.round(parseFloat(bestLongRun.HeartRateAverage) || 0);
+    const keyPower = Math.round(parseFloat(bestLongRun.PowerAverage) || 0);
+
+    const keyLongRunText = `${keyDistance}km em ${keyPace} (${keyDate})${keyHR > 0 ? ` - FC: ${keyHR} bpm` : ''}${keyPower > 0 ? ` - Power Avg: ${keyPower}W` : ''}`;
+
+    return {
+        count: longRuns.length,
+        avgPace: avgPace,
+        avgHR: avgHR > 0 ? `${avgHR} bpm` : 'N/A',
+        avgPower: avgPower > 0 ? `${avgPower}W` : 'N/A',
+        maxHR: maxHR > 0 ? `${maxHR} bpm` : 'N/A',
+        keyLongRun: keyLongRunText
+    };
+}
+
+// Calcular período de preparação
+function calculateTrainingPeriod(runWorkouts) {
+    if (runWorkouts.length === 0) {
+        return {
+            short: 'Período de Preparação',
+            full: 'Período de Preparação'
+        };
+    }
+
+    const dates = runWorkouts
+        .map(w => new Date(w.WorkoutDay))
+        .filter(d => !isNaN(d.getTime()))
+        .sort((a, b) => a - b);
+
+    if (dates.length === 0) {
+        return {
+            short: 'Período de Preparação',
+            full: 'Período de Preparação'
+        };
+    }
+
+    const firstDate = dates[0];
+    const lastDate = dates[dates.length - 1];
+
+    const monthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthsFull = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+    const firstMonthShort = monthsShort[firstDate.getMonth()];
+    const lastMonthShort = monthsShort[lastDate.getMonth()];
+    const lastYear = lastDate.getFullYear();
+
+    const short = firstMonthShort === lastMonthShort ?
+        firstMonthShort :
+        `${firstMonthShort} - ${lastMonthShort}`;
+
+    const full = firstMonthShort === lastMonthShort ?
+        `${firstMonthShort} ${lastYear}` :
+        `${firstMonthShort} - ${lastMonthShort} ${lastYear}`;
+
+    return {
+        short: short,
+        full: full
     };
 }
 
