@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise e Estratégia - Ironman 70.3 Florianópolis 2025</title>
+    <title>Análise e Estratégia - {{EVENT_NAME}}</title>
     <style>
         * {
             margin: 0;
@@ -592,7 +592,7 @@
     <div class="container">
         <!-- NAVEGAÇÃO E DASHBOARD -->
         <div style="background: #fef2f2; padding: 20px 30px; border-bottom: 2px solid #E8E2DD; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;">
-            <div style="font-weight: 700; color: #D0494E; font-size: 1.1em;">Ironman 70.3 Florianópolis 2025</div>
+            <div style="font-weight: 700; color: #D0494E; font-size: 1.1em;">{{EVENT_NAME}}</div>
             <button onclick="toggleDashboard()" id="dashboardToggle" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 25px; background: linear-gradient(135deg, #D0494E 0%, #400404 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(208, 73, 78, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(208, 73, 78, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(208, 73, 78, 0.3)'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
@@ -605,12 +605,12 @@
         <div class="main-header">
                             <div class="header-content">
                 <h1>ANÁLISE E ESTRATÉGIA DE PROVA</h1>
-                <h2>Ironman 70.3 Florianópolis 2025 | Atleta: Sarah Lotif</h2>
+                <h2>{{EVENT_NAME}} | Atleta: {{ATHLETE_NAME}}</h2>
 
                 <div class="header-details">
                     <div class="detail-item">
                         <div class="detail-label">Data da Prova</div>
-                        <div class="detail-value">26 de Outubro</div>
+                        <div class="detail-value">{{EVENT_DATE}}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Distância Total</div>
@@ -618,7 +618,7 @@
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Local</div>
-                        <div class="detail-value">Praia dos Ingleses, SC</div>
+                        <div class="detail-value">{{EVENT_LOCATION}}</div>
                     </div>
                 </div>
             </div>
@@ -632,14 +632,14 @@
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; max-width: 800px; margin: 0 auto;">
                     <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 30px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
                         <div style="font-size: 1em; opacity: 0.9; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Período</div>
-                        <div style="font-size: 2.2em; font-weight: 700;">11 semanas</div>
-                        <div style="font-size: 0.95em; opacity: 0.85; margin-top: 10px;">Agosto - Outubro 2025</div>
+                        <div style="font-size: 2.2em; font-weight: 700;">{{TOTAL_WEEKS}} semanas</div>
+                        <div style="font-size: 0.95em; opacity: 0.85; margin-top: 10px;">Período de Preparação</div>
                     </div>
-                    
+
                     <div style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 12px; padding: 30px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
                         <div style="font-size: 1em; opacity: 0.9; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">Volume Total</div>
-                        <div style="font-size: 2.2em; font-weight: 700;">113.8 h</div>
-                        <div style="font-size: 0.95em; opacity: 0.85; margin-top: 10px;">88 treinos realizados</div>
+                        <div style="font-size: 2.2em; font-weight: 700;">{{TOTAL_HOURS}} h</div>
+                        <div style="font-size: 0.95em; opacity: 0.85; margin-top: 10px;">{{TOTAL_WORKOUTS}} treinos realizados</div>
                     </div>
                 </div>
                 
@@ -710,19 +710,19 @@
                         <div class="overview-title">NATAÇÃO</div>
                         <div class="overview-stat">
                             <span class="stat-label">Treinos Realizados</span>
-                            <span class="stat-value">21</span>
+                            <span class="stat-value">{{SWIM_WORKOUTS}}</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Volume Total</span>
-                            <span class="stat-value">51.9 km</span>
+                            <span class="stat-value">{{SWIM_TOTAL_KM}} km</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Pace Médio</span>
-                            <span class="stat-value">1:58/100m</span>
+                            <span class="stat-value">{{SWIM_AVG_PACE}}</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Melhor Treino</span>
-                            <span class="stat-value">3.5km - 1:51/100m</span>
+                            <span class="stat-value">{{SWIM_BEST_WORKOUT}}</span>
                         </div>
                     </div>
 
@@ -730,19 +730,19 @@
                         <div class="overview-title">CICLISMO</div>
                         <div class="overview-stat">
                             <span class="stat-label">Treinos Realizados</span>
-                            <span class="stat-value">35</span>
+                            <span class="stat-value">{{BIKE_WORKOUTS}}</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Volume Total</span>
-                            <span class="stat-value">1,756 km</span>
+                            <span class="stat-value">{{BIKE_TOTAL_KM}} km</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Velocidade Média</span>
-                            <span class="stat-value">29.8 km/h</span>
+                            <span class="stat-value">{{BIKE_AVG_SPEED}} km/h</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Melhor Treino</span>
-                            <span class="stat-value">150km - 37.5km/h</span>
+                            <span class="stat-value">{{BIKE_BEST_WORKOUT}}</span>
                         </div>
                     </div>
 
@@ -750,19 +750,19 @@
                         <div class="overview-title">CORRIDA</div>
                         <div class="overview-stat">
                             <span class="stat-label">Treinos Realizados</span>
-                            <span class="stat-value">32</span>
+                            <span class="stat-value">{{RUN_WORKOUTS}}</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Volume Total</span>
-                            <span class="stat-value">383.4 km</span>
+                            <span class="stat-value">{{RUN_TOTAL_KM}} km</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Pace Médio</span>
-                            <span class="stat-value">5:15/km</span>
+                            <span class="stat-value">{{RUN_AVG_PACE}}</span>
                         </div>
                         <div class="overview-stat">
                             <span class="stat-label">Melhor Treino</span>
-                            <span class="stat-value">21.3km - 5:05/km</span>
+                            <span class="stat-value">{{RUN_BEST_WORKOUT}}</span>
                         </div>
                     </div>
                 </div>
@@ -776,497 +776,21 @@
                 </div>
 
                 <h3 style="font-size: 1.5em; margin-bottom: 20px; color: #400404;">NATAÇÃO - Treinos Longos do Período (≥ 2.8km)</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Distância</th>
-                            <th>Tempo</th>
-                            <th>Pace</th>
-                            <th>FC Média</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>18/10/2025</td>
-                            <td><strong>1.9 km</strong></td>
-                            <td>40min</td>
-                            <td>2:06/100m</td>
-                            <td>128 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>14/10/2025</td>
-                            <td><strong>3.2 km</strong></td>
-                            <td>1h14min</td>
-                            <td>2:20/100m</td>
-                            <td>123 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>11/10/2025</td>
-                            <td><strong>1.9 km</strong></td>
-                            <td>38min</td>
-                            <td>2:00/100m</td>
-                            <td>130 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>05/10/2025</td>
-                            <td><strong>1.9 km</strong></td>
-                            <td>39min</td>
-                            <td>2:03/100m</td>
-                            <td>127 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>04/10/2025</td>
-                            <td><strong>1.9 km</strong></td>
-                            <td>37min</td>
-                            <td>1:57/100m</td>
-                            <td>132 bpm</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>03/10/2025</td>
-                            <td><strong>3.5 km</strong></td>
-                            <td>1h05min</td>
-                            <td>1:51/100m</td>
-                            <td>125 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>27/09/2025</td>
-                            <td><strong>1.9 km</strong></td>
-                            <td>39min</td>
-                            <td>2:03/100m</td>
-                            <td>129 bpm</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>24/09/2025</td>
-                            <td><strong>3.2 km</strong></td>
-                            <td>1h00min</td>
-                            <td>1:52/100m</td>
-                            <td>133 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>14/09/2025</td>
-                            <td><strong>2.8 km</strong></td>
-                            <td>55min</td>
-                            <td>1:58/100m</td>
-                            <td>125 bpm</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>04/09/2025</td>
-                            <td><strong>3.4 km</strong></td>
-                            <td>1h00min</td>
-                            <td>1:47/100m</td>
-                            <td>112 bpm</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>02/09/2025</td>
-                            <td><strong>3.0 km</strong></td>
-                            <td>51min</td>
-                            <td>1:43/100m</td>
-                            <td>128 bpm</td>
-                        </tr>
-                        <tr>
-                            <td>06/08/2025</td>
-                            <td><strong>2.8 km</strong></td>
-                            <td>49min</td>
-                            <td>1:44/100m</td>
-                            <td>133 bpm</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>01/08/2025</td>
-                            <td><strong>3.0 km</strong></td>
-                            <td>53min</td>
-                            <td>1:44/100m</td>
-                            <td>112 bpm</td>
-                        </tr>
-                    </tbody>
-                </table>
+                {{SWIM_WORKOUTS_TABLE}}
 
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 5px solid #D0494E; border-radius: 12px; padding: 30px; margin: 30px 0;">
-                    <h4 style="color: #400404; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">ANÁLISE DOS TREINOS EM ZONA TEMPO - NATAÇÃO</h4>
-                    <p style="margin-bottom: 20px; color: #333;">Treinos acima de 3.0km considerados em Zona Tempo (destacados em rosa):</p>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Distância Média</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">3.3 km</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Pace Médio</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">1:52/100m</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">FC Médio</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">120 bpm</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total de Treinos</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">5</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: white; border-radius: 10px;">
-                        <strong style="color: #400404; display: block; margin-bottom: 10px;">Melhor Performance:</strong>
-                        <p style="margin: 0; color: #333;">02/09/2025 - 3.0km em 51min - Pace 1:43/100m - FC 128bpm</p>
-                    </div>
-                </div>
-
-                <!-- HISTÓRICO DE PROVAS - NATAÇÃO -->
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 12px; padding: 25px; margin-bottom: 40px; border-left: 5px solid #D0494E;">
-                    <h4 style="color: #400404; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">HISTÓRICO DE PROVAS - NATAÇÃO</h4>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Troféu Brasil - 15 de Junho de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 1.807 m (Sprint)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 35:23 min</div>
-                            <div style="color: #333;"><strong>Pace:</strong> 1:57/100m</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Rio Triathlon - 14 de Setembro de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 1.656 m (Olímpico)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 40:51 min</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Pace:</strong> 2:28/100m</div>
-                            <div style="color: #400404; font-weight: 600; margin-top: 10px;">Mar agitado</div>
-                        </div>
-                    </div>
-                </div>
-
+                {{SWIM_ZONE_TEMPO_ANALYSIS}}
                 <h3 style="font-size: 1.5em; margin: 40px 0 20px 0; color: #400404;">CICLISMO - Treinos Longos do Período (≥ 70km)</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Distância</th>
-                            <th>Tempo</th>
-                            <th>Velocidade</th>
-                            <th>FC Média</th>
-                            <th>Tipo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="highlight">
-                            <td>18/10/2025</td>
-                            <td><strong>90.0 km</strong></td>
-                            <td>2h40min</td>
-                            <td>33.8 km/h</td>
-                            <td>135 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>11/10/2025</td>
-                            <td><strong>90.0 km</strong></td>
-                            <td>2h35min</td>
-                            <td>34.8 km/h</td>
-                            <td>131 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>05/10/2025</td>
-                            <td><strong>80.0 km</strong></td>
-                            <td>2h30min</td>
-                            <td>32.0 km/h</td>
-                            <td>130 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>04/10/2025</td>
-                            <td><strong>115.0 km</strong></td>
-                            <td>3h00min</td>
-                            <td>38.3 km/h</td>
-                            <td>142 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>27/09/2025</td>
-                            <td><strong>90.0 km</strong></td>
-                            <td>2h50min</td>
-                            <td>31.8 km/h</td>
-                            <td>128 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>23/09/2025</td>
-                            <td><strong>70.7 km</strong></td>
-                            <td>3h00min</td>
-                            <td>23.6 km/h</td>
-                            <td>132 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>06/09/2025</td>
-                            <td><strong>98.0 km</strong></td>
-                            <td>3h30min</td>
-                            <td>28.0 km/h</td>
-                            <td>125 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>16/08/2025</td>
-                            <td><strong>150.0 km</strong></td>
-                            <td>4h00min</td>
-                            <td>37.5 km/h</td>
-                            <td>135 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr>
-                            <td>02/08/2025</td>
-                            <td><strong>70.5 km</strong></td>
-                            <td>3h00min</td>
-                            <td>23.5 km/h</td>
-                            <td>116 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                    </tbody>
-                </table>
+                {{BIKE_WORKOUTS_TABLE}}
 
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 5px solid #D0494E; border-radius: 12px; padding: 30px; margin: 30px 0;">
-                    <h4 style="color: #D0494E; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">ANÁLISE DOS TREINOS EM ZONA TEMPO - CICLISMO</h4>
-                    <p style="margin-bottom: 20px; color: #333;">Treinos acima de 90km considerados em Zona Tempo (destacados em roxo):</p>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Distância Média</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">108.6 km</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Vel. Média</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">34.5 km/h</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">FC Médio</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">134 bpm</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total de Treinos</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">5</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: white; border-radius: 10px;">
-                        <strong style="color: #400404; display: block; margin-bottom: 10px;">Melhor Performance:</strong>
-                        <p style="margin: 0; color: #333;">04/10/2025 - 115km em 3h00min - Velocidade 38.3 km/h - FC 142bpm</p>
-                    </div>
-                </div>
-
-                <!-- HISTÓRICO DE PROVAS - CICLISMO -->
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 12px; padding: 25px; margin-bottom: 40px; border-left: 5px solid #D0494E;">
-                    <h4 style="color: #400404; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">HISTÓRICO DE PROVAS - CICLISMO</h4>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Troféu Brasil - 15 de Junho de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 39.2 km (Sprint)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 1h14:50 min</div>
-                            <div style="color: #333;"><strong>Velocidade:</strong> 31.4 km/h</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Rio Triathlon - 14 de Setembro de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 38.5 km (Olímpico)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 1h17:41 min</div>
-                            <div style="color: #333;"><strong>Velocidade:</strong> 29.8 km/h</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px; padding: 15px; background: rgba(156, 39, 176, 0.1); border-radius: 8px;">
-                        <strong style="color: #400404;">Melhor Treino:</strong>
-                        <span style="color: #333;"> 04/10/2025 - 115km em 3h00min - Velocidade 38.3 km/h - FC 142bpm</span>
-                    </div>
-                </div>
-
+                {{BIKE_ZONE_TEMPO_ANALYSIS}}
                 <h3 style="font-size: 1.5em; margin: 40px 0 20px 0; color: #400404;">CORRIDA - Treinos Longos do Período (≥ 15km)</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Distância</th>
-                            <th>Tempo</th>
-                            <th>Pace</th>
-                            <th>FC Média</th>
-                            <th>Tipo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>18/10/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>53min</td>
-                            <td>5:18/km</td>
-                            <td>148 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>11/10/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>52min</td>
-                            <td>5:12/km</td>
-                            <td>151 bpm</td>
-                            <td style="color: #400404; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>08/10/2025</td>
-                            <td><strong>21.3 km</strong></td>
-                            <td>1h48min</td>
-                            <td>5:05/km</td>
-                            <td>167 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr>
-                            <td>05/10/2025</td>
-                            <td><strong>17.7 km</strong></td>
-                            <td>1h30min</td>
-                            <td>5:06/km</td>
-                            <td>162 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr>
-                            <td>04/10/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>55min</td>
-                            <td>5:30/km</td>
-                            <td>146 bpm</td>
-                            <td style="color: #FF6F00; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>27/09/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>56min</td>
-                            <td>5:36/km</td>
-                            <td>143 bpm</td>
-                            <td style="color: #FF6F00; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>20/09/2025</td>
-                            <td><strong>15.0 km</strong></td>
-                            <td>1h17min</td>
-                            <td>5:07/km</td>
-                            <td>172 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr>
-                            <td>13/09/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>54min</td>
-                            <td>5:24/km</td>
-                            <td>152 bpm</td>
-                            <td style="color: #FF6F00; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>07/09/2025</td>
-                            <td><strong>19.0 km</strong></td>
-                            <td>1h41min</td>
-                            <td>5:18/km</td>
-                            <td>161 bpm</td>
-                            <td>Longo</td>
-                        </tr>
-                        <tr>
-                            <td>06/09/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>58min</td>
-                            <td>5:48/km</td>
-                            <td>145 bpm</td>
-                            <td style="color: #FF6F00; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr>
-                            <td>17/08/2025</td>
-                            <td><strong>10.0 km</strong></td>
-                            <td>55min</td>
-                            <td>5:30/km</td>
-                            <td>150 bpm</td>
-                            <td style="color: #FF6F00; font-weight: 700;">Transição</td>
-                        </tr>
-                        <tr class="highlight">
-                            <td>15/08/2025</td>
-                            <td><strong>16.1 km</strong></td>
-                            <td>1h15min</td>
-                            <td>4:39/km</td>
-                            <td>171 bpm</td>
-                            <td style="color: #4CAF50; font-weight: 700;">Race Pace</td>
-                        </tr>
-                    </tbody>
-                </table>
+                {{RUN_WORKOUTS_TABLE}}
 
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 5px solid #D0494E; border-radius: 12px; padding: 30px; margin: 30px 0;">
-                    <h4 style="color: #400404; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">ANÁLISE DOS TREINOS EM RACE PACE - CORRIDA</h4>
-                    <p style="margin-bottom: 20px; color: #333;">Treinos acima de 18km considerados Longs Runs com análise de Race Pace (destacados em verde):</p>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Distância Média</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">18.8 km</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Pace Médio</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">5:01/km</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">FC Média</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">166 bpm</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total de Treinos</div>
-                            <div style="font-size: 1.8em; font-weight: 700; color: #400404;">3</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: white; border-radius: 10px;">
-                        <strong style="color: #400404; display: block; margin-bottom: 10px;">Melhor Performance em Race Pace:</strong>
-                        <p style="margin: 0; color: #333;">15/08/2025 - 16.1km em 1h15min - Pace 4:39/km - FC 171bpm</p>
-                        <p style="margin: 10px 0 0 0; color: #333;"><strong>Top 3 Race Pace:</strong> 4:39/km | 5:05/km | 5:18/km</p>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: rgba(156, 39, 176, 0.1); border-radius: 10px; border: 2px solid #D0494E;">
-                        <strong style="color: #400404; display: block; margin-bottom: 10px; font-size: 1.1em;">BRICK RUNS (Transições Bike-Run) - Outubro</strong>
-                        <p style="margin: 10px 0; color: #333;">Treinos realizados imediatamente após sessões de ciclismo para simular a transição T2:</p>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #333;">
-                            <li><strong>18/10:</strong> 10km em 53min - Pace 5:18/km - FC 148 bpm após 90km de bike</li>
-                            <li><strong>11/10:</strong> 10km em 52min - Pace 5:12/km - FC 151 bpm após 90km de bike</li>
-                            <li><strong>04/10:</strong> 10km em 55min - Pace 5:30/km - FC 146 bpm após 115km de bike</li>
-                        </ul>
-                        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px;">
-                            <strong style="color: #400404;">Média dos Brick Runs (Outubro):</strong>
-                            <p style="margin: 5px 0 0 0; color: #333;">Pace médio: 5:20/km | FC médio: 148 bpm</p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: rgba(156, 39, 176, 0.1); border-radius: 10px; border: 2px solid #D0494E;">
-                        <strong style="color: #400404; display: block; margin-bottom: 10px; font-size: 1.1em;">RACE PACE - Treinos de Ritmo de Prova - Outubro</strong>
-                        <p style="margin: 10px 0; color: #333;">Treinos específicos de ritmo de prova realizados em outubro:</p>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #333;">
-                            <li><strong>18/10:</strong> Pace 4:20/km - 20min</li>
-                            <li><strong>11/10:</strong> Pace 4:20/km - 4x10min (40min total)</li>
-                            <li><strong>05/10:</strong> Pace 4:30/km - 3x7min (21min total)</li>
-                            <li><strong>04/10:</strong> Pace 4:20/km - 20min</li>
-                        </ul>
-                        <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px;">
-                            <strong style="color: #400404;">Média Race Pace (Outubro):</strong>
-                            <p style="margin: 5px 0 0 0; color: #333;">Pace médio: 4:23/km | Tempo total acumulado: 101 minutos</p>
-                        </div>
-                        <p style="margin: 10px 0 0 0; color: #333; font-style: italic;">Esses treinos desenvolvem a capacidade de manter ritmo forte e constante durante a meia maratona.</p>
-                    </div>
-                </div>
-
-                <!-- HISTÓRICO DE PROVAS - CORRIDA -->
-                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 12px; padding: 25px; margin-bottom: 40px; border-left: 5px solid #D0494E;">
-                    <h4 style="color: #400404; font-size: 1.3em; font-weight: 700; margin-bottom: 20px;">HISTÓRICO DE PROVAS - CORRIDA</h4>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Troféu Brasil - 15 de Junho de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 10.1 km (Sprint)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 47:03 min</div>
-                            <div style="color: #333;"><strong>Pace:</strong> 4:39/km</div>
-                        </div>
-                        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-weight: 700; color: #400404; margin-bottom: 10px; font-size: 1.1em;">Rio Triathlon - 14 de Setembro de 2025</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Distância:</strong> 9.85 km (Olímpico)</div>
-                            <div style="color: #333; margin-bottom: 8px;"><strong>Tempo:</strong> 46:14 min</div>
-                            <div style="color: #333;"><strong>Pace:</strong> 4:41/km</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CENÁRIOS DE TEMPO -->
+                {{RUN_RACE_PACE_ANALYSIS}}
             <div class="section">
                 <div class="section-header">
                     <div class="section-number">3</div>
-                    <h2 class="section-title">Cenários de Tempo - Ironman 70.3 Florianópolis</h2>
+                    <h2 class="section-title">Cenários de Tempo - {{EVENT_NAME}}</h2>
                 </div>
 
                 <div style="margin-bottom: 40px;">
@@ -1283,10 +807,10 @@
                             <div style="background: #f5f5f5; border-radius: 10px; padding: 20px; margin-bottom: 20px; flex-grow: 1;">
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Natação 1.9km</span>
-                                    <strong>33-35 min</strong>
+                                    <strong>{{META_A_SWIM_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: 1:44-1:50/100m</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: {{META_A_SWIM_PACE}}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>T1</span>
@@ -1294,10 +818,10 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Bike 90km</span>
-                                    <strong>2h40-2h50 min</strong>
+                                    <strong>{{META_A_BIKE_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Vel: 31.8-33.8 km/h</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Vel: {{META_A_BIKE_SPEED}} km/h</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>T2</span>
@@ -1305,16 +829,16 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Run 21.1km</span>
-                                    <strong>1h38-1h44 min</strong>
+                                    <strong>{{META_A_RUN_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: 4:39-4:56/km</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: {{META_A_RUN_PACE}}</span>
                                 </div>
                             </div>
                             
                             <div style="text-align: center; padding: 20px; background: #f5f5f5; border-radius: 10px;">
                                 <div style="font-size: 0.95em; margin-bottom: 8px; color: #666;">TEMPO TOTAL</div>
-                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">4:57-5:15</div>
+                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">{{META_A_TOTAL_TIME}}</div>
                             </div>
                             
                             <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; font-size: 0.9em; line-height: 1.6; color: #333;">
@@ -1334,10 +858,10 @@
                             <div style="background: #f5f5f5; border-radius: 10px; padding: 20px; margin-bottom: 20px; flex-grow: 1;">
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Natação 1.9km</span>
-                                    <strong>36-40 min</strong>
+                                    <strong>{{META_B_SWIM_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: 1:53-2:06/100m</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: {{META_B_SWIM_PACE}}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>T1</span>
@@ -1345,10 +869,10 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Bike 90km</span>
-                                    <strong>2h50-3h00 min</strong>
+                                    <strong>{{META_B_BIKE_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Vel: 30.0-31.8 km/h</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Vel: {{META_B_BIKE_SPEED}} km/h</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>T2</span>
@@ -1356,16 +880,16 @@
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Run 21.1km</span>
-                                    <strong>1h47-1h55 min</strong>
+                                    <strong>{{META_B_RUN_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: 5:05-5:27/km</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: {{META_B_RUN_PACE}}</span>
                                 </div>
                             </div>
                             
                             <div style="text-align: center; padding: 20px; background: #f5f5f5; border-radius: 10px;">
                                 <div style="font-size: 0.95em; margin-bottom: 8px; color: #666;">TEMPO TOTAL</div>
-                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">5:20-5:45</div>
+                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">{{META_B_TOTAL_TIME}}</div>
                             </div>
                             
                             <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; font-size: 0.9em; line-height: 1.6; color: #333;">
@@ -1385,10 +909,10 @@
                             <div style="background: #f5f5f5; border-radius: 10px; padding: 20px; margin-bottom: 20px; flex-grow: 1;">
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>Natação 1.9km</span>
-                                    <strong>41-45 min</strong>
+                                    <strong>{{META_C_SWIM_TIME}}</strong>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #666;">
-                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: 2:09-2:22/100m</span>
+                                    <span style="font-size: 0.85em; padding-left: 10px;">Pace: {{META_C_SWIM_PACE}}</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #333;">
                                     <span>T1</span>
@@ -1416,7 +940,7 @@
                             
                             <div style="text-align: center; padding: 20px; background: #f5f5f5; border-radius: 10px;">
                                 <div style="font-size: 0.95em; margin-bottom: 8px; color: #666;">TEMPO TOTAL</div>
-                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">5:50-6:20</div>
+                                <div style="font-size: 3em; font-weight: 700; letter-spacing: 2px; color: #400404;">{{META_C_TOTAL_TIME}}</div>
                             </div>
                             
                             <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; font-size: 0.9em; line-height: 1.6; color: #333;">
@@ -1829,20 +1353,19 @@
                     <div class="tips-title" style="color: #400404;">VOCÊ ESTÁ PREPARADA</div>
                     <div style="font-size: 1.1em; line-height: 1.8; color: #000000;">
                         <p style="margin-bottom: 15px;">
-                            <strong>Você treinou 88 sessões para este momento</strong>
+                            <strong>Você treinou {{TOTAL_WORKOUTS}} sessões para este momento</strong>
                         </p>
                         <p style="margin-bottom: 15px;">
-                            51.9km nadados | 1,756km pedalados | 383km corridos
+                            {{SWIM_TOTAL_KM}}km nadados | {{BIKE_TOTAL_KM}}km pedalados | {{RUN_TOTAL_KM}}km corridos
                         </p>
                         <p style="margin-bottom: 15px;">
-                            A preparação foi sólida e consistente. Você tem 2 treinos acima de 18km na corrida e completou 150km no ciclismo.
-                            Seus tempos em provas anteriores (Troféu Brasil e Rio Triathlon) mostram evolução e consistência.
+                            A preparação foi sólida e consistente com volumes adequados para o objetivo proposto.
                         </p>
                         <p style="margin-bottom: 15px;">
                             <strong style="color: #400404;">3 CENÁRIOS CALCULADOS:</strong><br>
-                            Meta A - Agressivo (4:57-5:15) - Dia Perfeito<br>
-                            Meta B - Realista (5:20-5:45) - Dia Bom<br>
-                            Meta C - Conservador (5:50-6:20) - Dia Difícil
+                            Meta A - Agressivo ({{META_A_TOTAL_TIME}}) - Dia Perfeito<br>
+                            Meta B - Realista ({{META_B_TOTAL_TIME}}) - Dia Bom<br>
+                            Meta C - Conservador ({{META_C_TOTAL_TIME}}) - Dia Difícil
                         </p>
                         <p style="font-size: 1.2em; font-weight: 700; color: #400404; text-align: center; margin-top: 20px;">
                             SEU CORPO SABE O QUE FAZER - CONFIE NELE!
@@ -1855,7 +1378,7 @@
         <div class="footer">
             <div class="footer-title">IRONMAN 70.3 FLORIANÓPOLIS 2025</div>
             <div class="footer-text">
-                Este plano estratégico foi desenvolvido com base nos dados de treino de Sarah Lotif<br>
+                Este plano estratégico foi desenvolvido com base nos dados de treino de {{ATHLETE_NAME}}<br>
                 entre agosto e outubro de 2025, incluindo análise de provas anteriores.<br>
                 <strong>Meta: 3 Cenários | Meta A - Agressivo (Recomendado): 4:57-5:15 | Meta B - Realista: 5:20-5:45 | Meta C - Conservador: 5:50-6:20</strong><br>
                 1.9km Natação + 90km Bike + 21.1km Run = 112.9km Total

@@ -13,7 +13,19 @@ function parseCSV(file) {
                 if (results.errors.length > 0) {
                     reject(new Error('Erro ao processar CSV: ' + results.errors[0].message));
                 } else {
-                    resolve(results.data);
+                    // ETAPA DE PRÉ-FILTRAGEM ADICIONADA
+                    // Define uma lista de todos os tipos de treino que consideramos válidos.
+                    const validTypes = ['Run', 'Bike', 'Swim', 'Strength', 'Day Off'];
+                    
+                    // Filtra os resultados do parser, mantendo apenas as linhas que:
+                    // 1. Existem (não são nulas).
+                    // 2. Possuem a coluna 'WorkoutType'.
+                    // 3. O valor em 'WorkoutType' está na nossa lista de tipos válidos.
+                    const filteredData = results.data.filter(row => 
+                        row && row.WorkoutType && validTypes.includes(row.WorkoutType)
+                    );
+                    
+                    resolve(filteredData);
                 }
             },
             error: (error) => {

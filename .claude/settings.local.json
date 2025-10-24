@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wslview:*)"
+      "Bash(wslview:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Read(//mnt/c/Users/alan_/OneDrive/**)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
