@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estratégia Chicago Marathon 2025 - Cauê Todeschini</title>
+    <title>Estratégia {{EVENT_NAME}} - {{ATHLETE_NAME}}</title>
     <style>
         * {
             margin: 0;
@@ -626,7 +626,7 @@
     <div class="container">
         <!-- BARRA DE NAVEGAÇÃO E DASHBOARD -->
         <div class="navigation-bar">
-            <div style="font-weight: 600; color: #400404; font-size: 1.1em;">Chicago Marathon 2025</div>
+            <div style="font-weight: 600; color: #400404; font-size: 1.1em;">{{EVENT_NAME}}</div>
             <button onclick="toggleDashboard()" id="dashboardToggle" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #D0494E 0%, #400404 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(208, 73, 78, 0.3); font-size: 0.95em;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 18px rgba(208, 73, 78, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(208, 73, 78, 0.3)'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
@@ -638,8 +638,8 @@
         <!-- CABEÇALHO -->
         <div class="main-header">
             <div class="header-info">
-                <h1>Estratégia da Chicago Marathon 2025</h1>
-                <h2>Atleta: Cauê Todeschini</h2>
+                <h1>Estratégia da {{EVENT_NAME}}</h1>
+                <h2>Atleta: {{ATHLETE_NAME}}</h2>
             </div>
 
             <div class="header-details">
@@ -649,7 +649,7 @@
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Período Analisado</span>
-                    <span class="detail-value">Julho - Setembro</span>
+                    <span class="detail-value">{{TRAINING_PERIOD}}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">Meta Principal</span>
@@ -717,24 +717,24 @@
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
                         <div>
                             <div style="font-size: 0.95em; opacity: 0.85; margin-bottom: 8px; letter-spacing: 0.5px;">Período de Preparação</div>
-                            <div style="font-size: 1.6em; font-weight: 600; margin-bottom: 20px;">Julho - Setembro 2025</div>
-                            
+                            <div style="font-size: 1.6em; font-weight: 600; margin-bottom: 20px;">{{TRAINING_PERIOD_FULL}}</div>
+
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Total de Corridas</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">53</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{TOTAL_WORKOUTS}}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Distância Total</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">775 km</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{TOTAL_KM}} km</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Tempo Total</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">67.8h</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{TOTAL_HOURS}}h</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Longões ≥20km</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">13</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{LONG_RUNS_COUNT}}</div>
                                 </div>
                             </div>
                         </div>
@@ -746,19 +746,19 @@
                             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Pace Médio</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">4:59/km</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{LONG_RUNS_AVG_PACE}}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">FC Média</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">156 bpm</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{LONG_RUNS_AVG_HR}}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">Power Avg</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">362W</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{LONG_RUNS_AVG_POWER}}</div>
                                 </div>
                                 <div>
                                     <div style="font-size: 0.85em; opacity: 0.8;">FC Máxima</div>
-                                    <div style="font-size: 1.8em; font-weight: 700;">189 bpm</div>
+                                    <div style="font-size: 1.8em; font-weight: 700;">{{LONG_RUNS_MAX_HR}}</div>
                                 </div>
                             </div>
                         </div>
@@ -766,7 +766,7 @@
 
                     <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.3);">
                         <div style="font-size: 0.95em; opacity: 0.85; margin-bottom: 10px; letter-spacing: 0.5px;">Longão Chave</div>
-                        <div style="font-size: 1.35em; font-weight: 600;">36km em 4:48/km (14/09/2025) - FC: 158 bpm - Power Avg: 369W</div>
+                        <div style="font-size: 1.35em; font-weight: 600;">{{KEY_LONG_RUN}}</div>
                     </div>
                 </div>
             </div>
@@ -1303,8 +1303,8 @@
         <div class="footer">
             <div class="footer-highlight">CHICAGO MARATHON 2025</div>
             <div class="footer-text">
-                Este relatório foi desenvolvido com base nos dados de treino de Cauê Todeschini<br>
-                e projeta uma performance realista para a Chicago Marathon 2025.<br>
+                Este relatório foi desenvolvido com base nos dados de treino de {{ATHLETE_NAME}}<br>
+                e projeta uma performance realista para a {{EVENT_NAME}}.<br>
                 <strong>Meta Principal: 3h20-3h25 | Pace Alvo: 4:43-4:51/km</strong>
             </div>
             <div style="margin-top: 20px; color: #400404; font-size: 1.4em; font-weight: 700;">
@@ -1355,9 +1355,9 @@
 
             // Usar dados reais do CSV se disponíveis, senão usa exemplo
             const runData = window.REAL_CHART_DATA || {
-                totalRuns: 53,
-                totalKm: 775,
-                totalHours: 67.8,
+                totalRuns: {{CHART_TOTAL_RUNS}},
+                totalKm: {{CHART_TOTAL_KM}},
+                totalHours: {{CHART_TOTAL_HOURS}},
                 avgPaceValue: 5.25,
                 avgHR: 145,
                 workoutTypes: {
