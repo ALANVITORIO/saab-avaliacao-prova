@@ -103,13 +103,6 @@ form.addEventListener('submit', async function(e) {
         // Get selected template
         const selectedTemplate = document.querySelector('input[name="template"]:checked').value;
 
-        // Currently only supporting triathlon template
-        if (selectedTemplate !== 'triathlon') {
-            showStatus('❌ Apenas o template de Triathlon está disponível no momento.', 'error');
-            generateBtn.disabled = false;
-            return;
-        }
-
         showStatus('⏳ Lendo arquivo CSV...', 'info');
 
         // Read CSV file
@@ -147,36 +140,62 @@ form.addEventListener('submit', async function(e) {
         const eventLocation = eventLocationInput.value.trim();
         const raceType = raceTypeSelect.value;
 
-        // Validate
+        // Validate basic fields
         if (!athleteName || !eventName || !eventDate) {
             throw new Error('Preencha todos os campos obrigatórios');
         }
 
-        if (!raceType) {
-            throw new Error('Selecione o tipo de prova');
+        // Validate race type for triathlon only
+        if (selectedTemplate === 'triathlon') {
+            if (!raceType) {
+                throw new Error('Selecione o tipo de prova (Sprint/Olímpico/70.3/Full)');
+            }
         }
 
         showStatus('⏳ Carregando template...', 'info');
 
-        // Load template
-        const templateResponse = await fetch('template-saab-com-placeholders.html');
+        // Load correct template based on selection
+        let templateFile;
+        if (selectedTemplate === 'triathlon') {
+            templateFile = 'template-saab-com-placeholders.html';
+        } else if (selectedTemplate === 'corrida') {
+            templateFile = 'corrida-template.html';
+        } else {
+            throw new Error('Template inválido selecionado');
+        }
+
+        const templateResponse = await fetch(templateFile);
         if (!templateResponse.ok) {
-            throw new Error('Erro ao carregar template');
+            throw new Error(`Erro ao carregar template: ${templateFile}`);
         }
         const templateHTML = await templateResponse.text();
 
         showStatus('⏳ Gerando relatório... (calculando métricas)', 'info');
 
-        // Generate report using ironman-report-generator.js
-        generatedHTML = generateIronmanReport(
-            csvData,
-            athleteName,
-            eventName,
-            eventDate,
-            eventLocation,
-            raceType,
-            templateHTML
-        );
+        // Generate report using appropriate generator
+        if (selectedTemplate === 'triathlon') {
+            // Use Ironman/Triathlon generator
+            generatedHTML = generateIronmanReport(
+                csvData,
+                athleteName,
+                eventName,
+                eventDate,
+                eventLocation,
+                raceType,
+                templateHTML
+            );
+        } else if (selectedTemplate === 'corrida') {
+            // Use Running generator
+            generatedHTML = generateRunningReport(
+                csvData,
+                athleteName,
+                eventName,
+                templateHTML,
+                15000 // Default min distance for long runs: 15km
+            );
+        } else {
+            throw new Error('Gerador não implementado para este template');
+        }
 
         // Success!
         showStatus('✅ Relatório gerado com sucesso!', 'success');
