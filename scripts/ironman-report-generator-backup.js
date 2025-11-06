@@ -328,264 +328,6 @@ function filterLongWorkouts(workouts, minDistance) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════
-// NOVAS FUNÇÕES - ANÁLISES AVANÇADAS E DETECÇÃO DE PROVAS
-// ════════════════════════════════════════════════════════════════════════════════════════
-
-/**
- * Detecta provas (races) no CSV
- * Provas são identificadas por: distâncias específicas + velocidades altas
- */
-function detectRaces(csvData) {
-    const races = [];
-
-    csvData.forEach(row => {
-        const type = row.WorkoutType || '';
-        const distance = parseFloat(row.DistanceInMeters) || 0;
-        const velocity = parseFloat(row.VelocityAverage) || 0;
-        const date = row.WorkoutDay;
-        const title = row.Title || '';
-
-        // Detectar prova de natação (1.5-1.9km, velocidade alta)
-        if (type === 'Swim' && distance >= 1500 && distance <= 2000 && velocity > 0.6) {
-            races.push({
-                discipline: 'Natação',
-                date,
-                distance: (distance / 1000).toFixed(3),
-                time: formatTime(parseFloat(row.TimeTotalInHours)),
-                pace: convertSwimPace(velocity),
-                type: distance < 1600 ? 'Sprint' : 'Olímpico',
-                title
-            });
-        }
-
-        // Detectar prova de ciclismo (38-42km, velocidade alta)
-        if ((type === 'Bike' || type === 'Cycling') && distance >= 38000 && distance <= 42000 && velocity > 7) {
-            races.push({
-                discipline: 'Ciclismo',
-                date,
-                distance: (distance / 1000).toFixed(1),
-                time: formatTime(parseFloat(row.TimeTotalInHours)),
-                speed: convertBikeSpeed(velocity),
-                type: distance < 40000 ? 'Sprint' : 'Olímpico',
-                title
-            });
-        }
-
-        // Detectar prova de corrida (9-11km, velocidade alta)
-        if ((type === 'Run' || type === 'Running') && distance >= 9000 && distance <= 11000 && velocity > 3) {
-            races.push({
-                discipline: 'Corrida',
-                date,
-                distance: (distance / 1000).toFixed(2),
-                time: formatTime(parseFloat(row.TimeTotalInHours)),
-                pace: convertRunPace(velocity),
-                type: distance < 10000 ? 'Sprint' : 'Olímpico',
-                title
-            });
-        }
-    });
-
-    return races;
-}
-
-/**
- * Calcula estatísticas de Zona Tempo para Natação (>3km)
- */
-function calculateTempoZoneSwimStats(swimWorkouts) {
-    const tempoZone = swimWorkouts.filter(w => parseFloat(w.DistanceInMeters) >= 3000);
-
-    if (tempoZone.length === 0) {
-        return null;
-    }
-
-    // Distância média
-    const avgDistance = tempoZone.reduce((sum, w) => sum + parseFloat(w.DistanceInMeters), 0) / tempoZone.length;
-
-    // Pace médio
-    const velocities = tempoZone.map(w => parseFloat(w.VelocityAverage)).filter(v => v > 0);
-    const avgVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
-
-    // FC médio
-    const hrs = tempoZone.map(w => parseFloat(w.HeartRateAverage)).filter(hr => hr > 0);
-    const avgHR = hrs.length > 0 ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : 0;
-
-    // Melhor performance (mais rápido)
-    const sorted = [...tempoZone].sort((a, b) => {
-        return parseFloat(b.VelocityAverage) - parseFloat(a.VelocityAverage);
-    });
-    const best = sorted[0];
-
-    return {
-        count: tempoZone.length,
-        avgDistance: (avgDistance / 1000).toFixed(1),
-        avgPace: convertSwimPace(avgVelocity),
-        avgHR,
-        bestPerformance: {
-            date: formatDateShort(best.WorkoutDay),
-            distance: (parseFloat(best.DistanceInMeters) / 1000).toFixed(1),
-            time: formatTime(parseFloat(best.TimeTotalInHours)),
-            pace: convertSwimPace(parseFloat(best.VelocityAverage)),
-            hr: Math.round(parseFloat(best.HeartRateAverage) || 0)
-        }
-    };
-}
-
-/**
- * Calcula estatísticas de Zona Tempo para Ciclismo (>90km)
- */
-function calculateTempoZoneBikeStats(bikeWorkouts) {
-    const tempoZone = bikeWorkouts.filter(w => parseFloat(w.DistanceInMeters) >= 90000);
-
-    if (tempoZone.length === 0) {
-        return null;
-    }
-
-    // Distância média
-    const avgDistance = tempoZone.reduce((sum, w) => sum + parseFloat(w.DistanceInMeters), 0) / tempoZone.length;
-
-    // Velocidade média
-    const velocities = tempoZone.map(w => parseFloat(w.VelocityAverage)).filter(v => v > 0);
-    const avgVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
-
-    // FC médio
-    const hrs = tempoZone.map(w => parseFloat(w.HeartRateAverage)).filter(hr => hr > 0);
-    const avgHR = hrs.length > 0 ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : 0;
-
-    // Melhor performance (mais rápido)
-    const sorted = [...tempoZone].sort((a, b) => {
-        return parseFloat(b.VelocityAverage) - parseFloat(a.VelocityAverage);
-    });
-    const best = sorted[0];
-
-    return {
-        count: tempoZone.length,
-        avgDistance: (avgDistance / 1000).toFixed(1),
-        avgSpeed: convertBikeSpeed(avgVelocity),
-        avgSpeedRaw: avgVelocity * 3.6, // Para usar nos cenários
-        avgHR,
-        bestPerformance: {
-            date: formatDateShort(best.WorkoutDay),
-            distance: (parseFloat(best.DistanceInMeters) / 1000).toFixed(1),
-            time: formatTime(parseFloat(best.TimeTotalInHours)),
-            speed: convertBikeSpeed(parseFloat(best.VelocityAverage)),
-            hr: Math.round(parseFloat(best.HeartRateAverage) || 0)
-        }
-    };
-}
-
-/**
- * Calcula estatísticas de Race Pace para Corrida (>18km)
- */
-function calculateRacePaceRunStats(runWorkouts) {
-    const longRuns = runWorkouts.filter(w => parseFloat(w.DistanceInMeters) >= 18000);
-
-    if (longRuns.length === 0) {
-        return null;
-    }
-
-    // Distância média
-    const avgDistance = longRuns.reduce((sum, w) => sum + parseFloat(w.DistanceInMeters), 0) / longRuns.length;
-
-    // Pace médio
-    const velocities = longRuns.map(w => parseFloat(w.VelocityAverage)).filter(v => v > 0);
-    const avgVelocity = velocities.reduce((a, b) => a + b, 0) / velocities.length;
-
-    // FC média
-    const hrs = longRuns.map(w => parseFloat(w.HeartRateAverage)).filter(hr => hr > 0);
-    const avgHR = hrs.length > 0 ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : 0;
-
-    // Melhor performance (mais rápido)
-    const sorted = [...longRuns].sort((a, b) => {
-        return parseFloat(b.VelocityAverage) - parseFloat(a.VelocityAverage);
-    });
-    const best = sorted[0];
-    const top3 = sorted.slice(0, 3);
-
-    return {
-        count: longRuns.length,
-        avgDistance: (avgDistance / 1000).toFixed(1),
-        avgPace: convertRunPace(avgVelocity),
-        avgPaceRaw: avgVelocity, // Para usar nos cenários
-        avgHR,
-        bestPerformance: {
-            date: formatDateShort(best.WorkoutDay),
-            distance: (parseFloat(best.DistanceInMeters) / 1000).toFixed(1),
-            time: formatTime(parseFloat(best.TimeTotalInHours)),
-            pace: convertRunPace(parseFloat(best.VelocityAverage)),
-            hr: Math.round(parseFloat(best.HeartRateAverage) || 0)
-        },
-        top3Paces: top3.map(w => convertRunPace(parseFloat(w.VelocityAverage)))
-    };
-}
-
-/**
- * Detecta Brick Runs (corridas logo após ciclismo)
- * Identifica treinos de corrida no mesmo dia que ciclismo
- */
-function detectBrickRuns(csvData) {
-    const brickRuns = [];
-
-    // Agrupar por data
-    const byDate = {};
-    csvData.forEach(row => {
-        const date = row.WorkoutDay;
-        if (!byDate[date]) byDate[date] = [];
-        byDate[date].push(row);
-    });
-
-    // Para cada data, verificar se tem bike + run
-    Object.keys(byDate).forEach(date => {
-        const workouts = byDate[date];
-        const bikes = workouts.filter(w => w.WorkoutType === 'Bike' && parseFloat(w.DistanceInMeters) >= 70000);
-        const runs = workouts.filter(w => w.WorkoutType === 'Run' && parseFloat(w.DistanceInMeters) >= 8000);
-
-        if (bikes.length > 0 && runs.length > 0) {
-            const bike = bikes[0];
-            const run = runs[0];
-
-            brickRuns.push({
-                date: formatDateShort(date),
-                bikeDistance: (parseFloat(bike.DistanceInMeters) / 1000).toFixed(0),
-                runDistance: (parseFloat(run.DistanceInMeters) / 1000).toFixed(1),
-                runTime: formatTime(parseFloat(run.TimeTotalInHours)),
-                runPace: convertRunPace(parseFloat(run.VelocityAverage)),
-                runHR: Math.round(parseFloat(run.HeartRateAverage) || 0)
-            });
-        }
-    });
-
-    return brickRuns;
-}
-
-/**
- * Detecta sessões de Race Pace (treinos específicos de ritmo)
- * Procura por treinos com "race pace" ou "pace" no título
- */
-function detectRacePaceSessions(runWorkouts) {
-    const racePaceSessions = [];
-
-    runWorkouts.forEach(row => {
-        const title = (row.Title || '').toLowerCase();
-        const description = (row.WorkoutDescription || '').toLowerCase();
-
-        // Detectar race pace no título ou descrição
-        if (title.includes('race pace') || title.includes('pace') || description.includes('race pace')) {
-            const distance = parseFloat(row.DistanceInMeters) || 0;
-            if (distance > 0) {
-                racePaceSessions.push({
-                    date: formatDateShort(row.WorkoutDay),
-                    pace: convertRunPace(parseFloat(row.VelocityAverage)),
-                    time: formatTime(parseFloat(row.TimeTotalInHours)),
-                    title: row.Title
-                });
-            }
-        }
-    });
-
-    return racePaceSessions;
-}
-
-// ════════════════════════════════════════════════════════════════════════════════════════
 // FUNÇÕES DE GERAÇÃO DE TABELAS HTML (Template Seção 2)
 // ════════════════════════════════════════════════════════════════════════════════════════
 
@@ -728,223 +470,12 @@ function generateRunTable(runLongWorkouts) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════
-// FUNÇÕES DE GERAÇÃO DE SEÇÕES AVANÇADAS HTML
-// ════════════════════════════════════════════════════════════════════════════════════════
-
-/**
- * Gera HTML para histórico de provas
- */
-function generateRaceHistoryHTML(races) {
-    if (!races || races.length === 0) {
-        return '<p style="color:#666;font-style:italic">Nenhuma prova detectada no período.</p>';
-    }
-
-    // Agrupar por disciplina
-    const racesByDiscipline = {
-        'Natação': races.filter(r => r.discipline === 'Natação'),
-        'Ciclismo': races.filter(r => r.discipline === 'Ciclismo'),
-        'Corrida': races.filter(r => r.discipline === 'Corrida')
-    };
-
-    let html = '';
-
-    Object.keys(racesByDiscipline).forEach(discipline => {
-        const disciplineRaces = racesByDiscipline[discipline];
-        if (disciplineRaces.length === 0) return;
-
-        html += `<h4 style="color:#400404;margin-top:25px;margin-bottom:15px;font-size:18px">${discipline}</h4>`;
-
-        disciplineRaces.forEach(race => {
-            const date = new Date(race.date);
-            const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-
-            html += `
-            <div style="background:#f9f9f9;padding:15px;margin-bottom:15px;border-left:4px solid #D0494E;border-radius:5px">
-                <div style="font-weight:600;color:#400404;margin-bottom:8px">${race.title || 'Prova ' + race.type}</div>
-                <div style="color:#666;font-size:14px;margin-bottom:5px">${formattedDate}</div>
-                <div><strong>Distância:</strong> ${race.distance} km (${race.type})</div>
-                <div><strong>Tempo:</strong> ${race.time}</div>
-                <div><strong>${discipline === 'Ciclismo' ? 'Velocidade' : 'Pace'}:</strong> ${race.pace || race.speed}</div>
-            </div>`;
-        });
-    });
-
-    return html;
-}
-
-/**
- * Gera HTML para análise de zona tempo - Natação
- */
-function generateTempoZoneSwimHTML(stats) {
-    if (!stats) {
-        return '<p style="color:#666;font-style:italic">Sem treinos em zona tempo (&gt;3km) detectados.</p>';
-    }
-
-    return `
-    <div style="background:#f5f5f5;padding:20px;border-radius:10px;margin:20px 0">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px">
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Distância Média</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgDistance} km</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Pace Médio</div>
-                <div style="font-size:22px;font-weight:700;color:#D0494E">${stats.avgPace}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">FC Médio</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgHR > 0 ? stats.avgHR + ' bpm' : '--'}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Total de Treinos</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.count}</div>
-            </div>
-        </div>
-
-        <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #D0494E">
-            <strong style="color:#400404;display:block;margin-bottom:10px">📊 Melhor Performance</strong>
-            <div><strong>Data:</strong> ${stats.bestPerformance.date}</div>
-            <div><strong>Distância:</strong> ${stats.bestPerformance.distance} km</div>
-            <div><strong>Tempo:</strong> ${stats.bestPerformance.time}</div>
-            <div><strong>Pace:</strong> ${stats.bestPerformance.pace}</div>
-            ${stats.bestPerformance.hr > 0 ? `<div><strong>FC:</strong> ${stats.bestPerformance.hr} bpm</div>` : ''}
-        </div>
-    </div>`;
-}
-
-/**
- * Gera HTML para análise de zona tempo - Ciclismo
- */
-function generateTempoZoneBikeHTML(stats) {
-    if (!stats) {
-        return '<p style="color:#666;font-style:italic">Sem treinos em zona tempo (&gt;90km) detectados.</p>';
-    }
-
-    return `
-    <div style="background:#f5f5f5;padding:20px;border-radius:10px;margin:20px 0">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px">
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Distância Média</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgDistance} km</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Vel. Média</div>
-                <div style="font-size:22px;font-weight:700;color:#D0494E">${stats.avgSpeed}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">FC Médio</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgHR > 0 ? stats.avgHR + ' bpm' : '--'}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Total de Treinos</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.count}</div>
-            </div>
-        </div>
-
-        <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #D0494E">
-            <strong style="color:#400404;display:block;margin-bottom:10px">📊 Melhor Performance</strong>
-            <div><strong>Data:</strong> ${stats.bestPerformance.date}</div>
-            <div><strong>Distância:</strong> ${stats.bestPerformance.distance} km</div>
-            <div><strong>Tempo:</strong> ${stats.bestPerformance.time}</div>
-            <div><strong>Velocidade:</strong> ${stats.bestPerformance.speed}</div>
-            ${stats.bestPerformance.hr > 0 ? `<div><strong>FC:</strong> ${stats.bestPerformance.hr} bpm</div>` : ''}
-        </div>
-    </div>`;
-}
-
-/**
- * Gera HTML para análise de race pace - Corrida
- */
-function generateRacePaceRunHTML(stats, brickRuns, racePaceSessions) {
-    if (!stats) {
-        return '<p style="color:#666;font-style:italic">Sem treinos em race pace (&gt;18km) detectados.</p>';
-    }
-
-    let html = `
-    <div style="background:#f5f5f5;padding:20px;border-radius:10px;margin:20px 0">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px">
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Distância Média</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgDistance} km</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Pace Médio</div>
-                <div style="font-size:22px;font-weight:700;color:#D0494E">${stats.avgPace}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">FC Médio</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.avgHR > 0 ? stats.avgHR + ' bpm' : '--'}</div>
-            </div>
-            <div>
-                <div style="font-size:13px;color:#666;margin-bottom:5px">Total de Treinos</div>
-                <div style="font-size:22px;font-weight:700;color:#400404">${stats.count}</div>
-            </div>
-        </div>
-
-        <div style="margin-bottom:15px">
-            <strong style="color:#400404">Top 3 Race Pace:</strong> ${stats.top3Paces.join(' | ')}
-        </div>
-
-        <div style="background:white;padding:15px;border-radius:8px;border-left:4px solid #D0494E">
-            <strong style="color:#400404;display:block;margin-bottom:10px">📊 Melhor Performance</strong>
-            <div><strong>Data:</strong> ${stats.bestPerformance.date}</div>
-            <div><strong>Distância:</strong> ${stats.bestPerformance.distance} km</div>
-            <div><strong>Tempo:</strong> ${stats.bestPerformance.time}</div>
-            <div><strong>Pace:</strong> ${stats.bestPerformance.pace}</div>
-            ${stats.bestPerformance.hr > 0 ? `<div><strong>FC:</strong> ${stats.bestPerformance.hr} bpm</div>` : ''}
-        </div>
-    </div>`;
-
-    // Brick Runs
-    if (brickRuns && brickRuns.length > 0) {
-        html += `
-        <div style="margin-top:25px">
-            <h4 style="color:#400404;margin-bottom:15px;font-size:18px">🔄 BRICK RUNS (Transições Bike-Run)</h4>
-            <ul style="list-style:none;padding:0">`;
-
-        brickRuns.forEach(brick => {
-            html += `
-                <li style="background:#f9f9f9;padding:12px;margin-bottom:10px;border-left:3px solid #D0494E;border-radius:5px">
-                    <strong>${brick.date}:</strong> ${brick.runDistance}km em ${brick.runTime} - Pace ${brick.runPace} - FC ${brick.runHR} bpm
-                    <span style="color:#666">(após ${brick.bikeDistance}km de bike)</span>
-                </li>`;
-        });
-
-        html += `
-            </ul>
-        </div>`;
-    }
-
-    // Race Pace Sessions
-    if (racePaceSessions && racePaceSessions.length > 0) {
-        html += `
-        <div style="margin-top:25px">
-            <h4 style="color:#400404;margin-bottom:15px;font-size:18px">🎯 RACE PACE - Treinos de Ritmo de Prova</h4>
-            <ul style="list-style:none;padding:0">`;
-
-        racePaceSessions.forEach(session => {
-            html += `
-                <li style="background:#f9f9f9;padding:12px;margin-bottom:10px;border-left:3px solid #D0494E;border-radius:5px">
-                    <strong>${session.date}:</strong> Pace ${session.pace} - ${session.time}
-                    ${session.title ? `<span style="color:#666"> - ${session.title}</span>` : ''}
-                </li>`;
-        });
-
-        html += `
-            </ul>
-        </div>`;
-    }
-
-    return html;
-}
-
-// ════════════════════════════════════════════════════════════════════════════════════════
 // CÁLCULO DOS 3 CENÁRIOS DE PROVA (Template Passo 4)
 // ════════════════════════════════════════════════════════════════════════════════════════
 
 /**
  * Calcula os 3 cenários de prova (Meta A - Agressivo, B - Realista, C - Conservador)
- * Retorna RANGES (min-max) em vez de valores únicos
+ * Baseado nas velocidades médias dos treinos
  */
 function calculate3Scenarios(swimStats, bikeStats, runStats, raceDistances) {
     const scenarios = {
@@ -954,34 +485,28 @@ function calculate3Scenarios(swimStats, bikeStats, runStats, raceDistances) {
     };
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // NATAÇÃO - META A (AGRESSIVO)
+    // NATAÇÃO
     // ──────────────────────────────────────────────────────────────────────────────
 
     const swimAvgVel = swimStats.avgVelocityRaw || 0;
 
-    // META A: Range de +12% a +18% mais rápido
-    const swimVelA_min = swimAvgVel * 1.12;
-    const swimVelA_max = swimAvgVel * 1.18;
-    const swimTimeA_min = (raceDistances.swim * 1000) / swimVelA_max / 60;
-    const swimTimeA_max = (raceDistances.swim * 1000) / swimVelA_min / 60;
-    scenarios.agressivo.swimTime = `${Math.floor(swimTimeA_min)}-${Math.ceil(swimTimeA_max)} min`;
-    scenarios.agressivo.swimPace = `${convertSwimPace(swimVelA_max).split('/')[0]}-${convertSwimPace(swimVelA_min).split('/')[0]}/100m`;
+    // META A: +15% mais rápido que média (agressivo - baseado em melhores treinos)
+    const swimVelA = swimAvgVel * 1.15;
+    const swimTimeA = (raceDistances.swim * 1000) / swimVelA / 60; // minutos
+    scenarios.agressivo.swimTime = formatMinutes(swimTimeA);
+    scenarios.agressivo.swimPace = convertSwimPace(swimVelA);
 
-    // META B: Range de -2% a +2% da média
-    const swimVelB_min = swimAvgVel * 0.98;
-    const swimVelB_max = swimAvgVel * 1.02;
-    const swimTimeB_min = (raceDistances.swim * 1000) / swimVelB_max / 60;
-    const swimTimeB_max = (raceDistances.swim * 1000) / swimVelB_min / 60;
-    scenarios.realista.swimTime = `${Math.floor(swimTimeB_min)}-${Math.ceil(swimTimeB_max)} min`;
-    scenarios.realista.swimPace = `${convertSwimPace(swimVelB_max).split('/')[0]}-${convertSwimPace(swimVelB_min).split('/')[0]}/100m`;
+    // META B: velocidade média (realista)
+    const swimVelB = swimAvgVel;
+    const swimTimeB = (raceDistances.swim * 1000) / swimVelB / 60;
+    scenarios.realista.swimTime = formatMinutes(swimTimeB);
+    scenarios.realista.swimPace = convertSwimPace(swimVelB);
 
-    // META C: Range de -6% a -10% mais lento
-    const swimVelC_min = swimAvgVel * 0.90;
-    const swimVelC_max = swimAvgVel * 0.94;
-    const swimTimeC_min = (raceDistances.swim * 1000) / swimVelC_max / 60;
-    const swimTimeC_max = (raceDistances.swim * 1000) / swimVelC_min / 60;
-    scenarios.conservador.swimTime = `${Math.floor(swimTimeC_min)}-${Math.ceil(swimTimeC_max)} min`;
-    scenarios.conservador.swimPace = `${convertSwimPace(swimVelC_max).split('/')[0]}-${convertSwimPace(swimVelC_min).split('/')[0]}/100m`;
+    // META C: -8% mais lento que média (conservador)
+    const swimVelC = swimAvgVel * 0.92;
+    const swimTimeC = (raceDistances.swim * 1000) / swimVelC / 60;
+    scenarios.conservador.swimTime = formatMinutes(swimTimeC);
+    scenarios.conservador.swimPace = convertSwimPace(swimVelC);
 
     // ──────────────────────────────────────────────────────────────────────────────
     // CICLISMO
@@ -989,35 +514,23 @@ function calculate3Scenarios(swimStats, bikeStats, runStats, raceDistances) {
 
     const bikeAvgVel = bikeStats.avgVelocityRaw || 0;
 
-    // META A: Range de +10% a +14%
-    const bikeVelA_min = bikeAvgVel * 1.10;
-    const bikeVelA_max = bikeAvgVel * 1.14;
-    const bikeTimeA_min = (raceDistances.bike * 1000) / bikeVelA_max / 60;
-    const bikeTimeA_max = (raceDistances.bike * 1000) / bikeVelA_min / 60;
-    scenarios.agressivo.bikeTime = `${formatMinutes(bikeTimeA_min)}-${formatMinutes(bikeTimeA_max)}`;
-    const bikeSpeedA_min = (bikeVelA_min * 3.6).toFixed(1);
-    const bikeSpeedA_max = (bikeVelA_max * 3.6).toFixed(1);
-    scenarios.agressivo.bikeSpeed = `${bikeSpeedA_min}-${bikeSpeedA_max} km/h`;
+    // META A: +12% mais rápido (agressivo)
+    const bikeVelA = bikeAvgVel * 1.12;
+    const bikeTimeA = (raceDistances.bike * 1000) / bikeVelA / 60;
+    scenarios.agressivo.bikeTime = formatMinutes(bikeTimeA);
+    scenarios.agressivo.bikeSpeed = convertBikeSpeed(bikeVelA);
 
-    // META B: Range de -2% a +2%
-    const bikeVelB_min = bikeAvgVel * 0.98;
-    const bikeVelB_max = bikeAvgVel * 1.02;
-    const bikeTimeB_min = (raceDistances.bike * 1000) / bikeVelB_max / 60;
-    const bikeTimeB_max = (raceDistances.bike * 1000) / bikeVelB_min / 60;
-    scenarios.realista.bikeTime = `${formatMinutes(bikeTimeB_min)}-${formatMinutes(bikeTimeB_max)}`;
-    const bikeSpeedB_min = (bikeVelB_min * 3.6).toFixed(1);
-    const bikeSpeedB_max = (bikeVelB_max * 3.6).toFixed(1);
-    scenarios.realista.bikeSpeed = `${bikeSpeedB_min}-${bikeSpeedB_max} km/h`;
+    // META B: velocidade média (realista)
+    const bikeVelB = bikeAvgVel;
+    const bikeTimeB = (raceDistances.bike * 1000) / bikeVelB / 60;
+    scenarios.realista.bikeTime = formatMinutes(bikeTimeB);
+    scenarios.realista.bikeSpeed = convertBikeSpeed(bikeVelB);
 
-    // META C: Range de -4% a -8%
-    const bikeVelC_min = bikeAvgVel * 0.92;
-    const bikeVelC_max = bikeAvgVel * 0.96;
-    const bikeTimeC_min = (raceDistances.bike * 1000) / bikeVelC_max / 60;
-    const bikeTimeC_max = (raceDistances.bike * 1000) / bikeVelC_min / 60;
-    scenarios.conservador.bikeTime = `${formatMinutes(bikeTimeC_min)}-${formatMinutes(bikeTimeC_max)}`;
-    const bikeSpeedC_min = (bikeVelC_min * 3.6).toFixed(1);
-    const bikeSpeedC_max = (bikeVelC_max * 3.6).toFixed(1);
-    scenarios.conservador.bikeSpeed = `${bikeSpeedC_min}-${bikeSpeedC_max} km/h`;
+    // META C: -6% mais lento (conservador)
+    const bikeVelC = bikeAvgVel * 0.94;
+    const bikeTimeC = (raceDistances.bike * 1000) / bikeVelC / 60;
+    scenarios.conservador.bikeTime = formatMinutes(bikeTimeC);
+    scenarios.conservador.bikeSpeed = convertBikeSpeed(bikeVelC);
 
     // ──────────────────────────────────────────────────────────────────────────────
     // CORRIDA
@@ -1025,48 +538,39 @@ function calculate3Scenarios(swimStats, bikeStats, runStats, raceDistances) {
 
     const runAvgVel = runStats.avgVelocityRaw || 0;
 
-    // META A: Range de +11% a +15%
-    const runVelA_min = runAvgVel * 1.11;
-    const runVelA_max = runAvgVel * 1.15;
-    const runTimeA_min = (raceDistances.run * 1000) / runVelA_max / 60;
-    const runTimeA_max = (raceDistances.run * 1000) / runVelA_min / 60;
-    scenarios.agressivo.runTime = `${formatMinutes(runTimeA_min)}-${formatMinutes(runTimeA_max)}`;
-    scenarios.agressivo.runPace = `${convertRunPace(runVelA_max).split('/')[0]}-${convertRunPace(runVelA_min).split('/')[0]}/km`;
+    // META A: +13% mais rápido (agressivo - baseado em race pace)
+    const runVelA = runAvgVel * 1.13;
+    const runTimeA = (raceDistances.run * 1000) / runVelA / 60;
+    scenarios.agressivo.runTime = formatMinutes(runTimeA);
+    scenarios.agressivo.runPace = convertRunPace(runVelA);
 
-    // META B: Range de -2% a +2%
-    const runVelB_min = runAvgVel * 0.98;
-    const runVelB_max = runAvgVel * 1.02;
-    const runTimeB_min = (raceDistances.run * 1000) / runVelB_max / 60;
-    const runTimeB_max = (raceDistances.run * 1000) / runVelB_min / 60;
-    scenarios.realista.runTime = `${formatMinutes(runTimeB_min)}-${formatMinutes(runTimeB_max)}`;
-    scenarios.realista.runPace = `${convertRunPace(runVelB_max).split('/')[0]}-${convertRunPace(runVelB_min).split('/')[0]}/km`;
+    // META B: velocidade média (realista)
+    const runVelB = runAvgVel;
+    const runTimeB = (raceDistances.run * 1000) / runVelB / 60;
+    scenarios.realista.runTime = formatMinutes(runTimeB);
+    scenarios.realista.runPace = convertRunPace(runVelB);
 
-    // META C: Range de -5% a -9%
-    const runVelC_min = runAvgVel * 0.91;
-    const runVelC_max = runAvgVel * 0.95;
-    const runTimeC_min = (raceDistances.run * 1000) / runVelC_max / 60;
-    const runTimeC_max = (raceDistances.run * 1000) / runVelC_min / 60;
-    scenarios.conservador.runTime = `${formatMinutes(runTimeC_min)}-${formatMinutes(runTimeC_max)}`;
-    scenarios.conservador.runPace = `${convertRunPace(runVelC_max).split('/')[0]}-${convertRunPace(runVelC_min).split('/')[0]}/km`;
+    // META C: -7% mais lento (conservador)
+    const runVelC = runAvgVel * 0.93;
+    const runTimeC = (raceDistances.run * 1000) / runVelC / 60;
+    scenarios.conservador.runTime = formatMinutes(runTimeC);
+    scenarios.conservador.runPace = convertRunPace(runVelC);
 
     // ──────────────────────────────────────────────────────────────────────────────
-    // TEMPO TOTAL (ranges incluindo transições)
+    // TEMPO TOTAL (incluindo transições)
     // ──────────────────────────────────────────────────────────────────────────────
 
-    // META A: T1=3-4min, T2=2-3min
-    const totalA_min = swimTimeA_min + 3 + bikeTimeA_min + 2 + runTimeA_min;
-    const totalA_max = swimTimeA_max + 4 + bikeTimeA_max + 3 + runTimeA_max;
-    scenarios.agressivo.totalTime = `${formatMinutes(totalA_min)}-${formatMinutes(totalA_max)}`;
+    // META A: T1=4min, T2=2min
+    const totalA = swimTimeA + 4 + bikeTimeA + 2 + runTimeA;
+    scenarios.agressivo.totalTime = formatMinutes(totalA);
 
-    // META B: T1=4-5min, T2=3-4min
-    const totalB_min = swimTimeB_min + 4 + bikeTimeB_min + 3 + runTimeB_min;
-    const totalB_max = swimTimeB_max + 5 + bikeTimeB_max + 4 + runTimeB_max;
-    scenarios.realista.totalTime = `${formatMinutes(totalB_min)}-${formatMinutes(totalB_max)}`;
+    // META B: T1=4min, T2=3min
+    const totalB = swimTimeB + 4 + bikeTimeB + 3 + runTimeB;
+    scenarios.realista.totalTime = formatMinutes(totalB);
 
-    // META C: T1=4-5min, T2=4-5min
-    const totalC_min = swimTimeC_min + 4 + bikeTimeC_min + 4 + runTimeC_min;
-    const totalC_max = swimTimeC_max + 5 + bikeTimeC_max + 5 + runTimeC_max;
-    scenarios.conservador.totalTime = `${formatMinutes(totalC_min)}-${formatMinutes(totalC_max)}`;
+    // META C: T1=4min, T2=4min
+    const totalC = swimTimeC + 4 + bikeTimeC + 4 + runTimeC;
+    scenarios.conservador.totalTime = formatMinutes(totalC);
 
     return scenarios;
 }
@@ -1110,48 +614,6 @@ function generateIronmanReport(csvData, athleteName, eventName, eventDate, event
     const runStats = calculateDisciplineStats(run, 'run');
 
     // ══════════════════════════════════════════════════════════════════════════════
-    // PASSO 2.5: ANÁLISES AVANÇADAS (ZONAS TEMPO, RACE PACE, PROVAS, BRICK RUNS)
-    // ══════════════════════════════════════════════════════════════════════════════
-
-    console.log('🔬 Executando análises avançadas...');
-
-    // Detectar provas (races) no CSV
-    const races = detectRaces(csvData);
-    console.log(`🏆 Provas detectadas: ${races.length}`);
-
-    // Análise de Zona Tempo - Natação (>3km)
-    const swimTempoZone = calculateTempoZoneSwimStats(swim);
-    if (swimTempoZone) {
-        console.log(`🏊 Zona Tempo Natação: ${swimTempoZone.count} treinos, pace médio ${swimTempoZone.avgPace}`);
-    }
-
-    // Análise de Zona Tempo - Ciclismo (>90km)
-    const bikeTempoZone = calculateTempoZoneBikeStats(bike);
-    if (bikeTempoZone) {
-        console.log(`🚴 Zona Tempo Ciclismo: ${bikeTempoZone.count} treinos, vel. média ${bikeTempoZone.avgSpeed}`);
-        // IMPORTANTE: Usar velocidade da zona tempo para o ciclismo (mais preciso)
-        bikeStats.avgVelocityRaw = bikeTempoZone.avgSpeedRaw / 3.6; // Converter de km/h para m/s
-        bikeStats.avgPaceOrSpeed = bikeTempoZone.avgSpeed;
-    }
-
-    // Análise de Race Pace - Corrida (>18km)
-    const runRacePace = calculateRacePaceRunStats(run);
-    if (runRacePace) {
-        console.log(`🏃 Race Pace Corrida: ${runRacePace.count} treinos, pace médio ${runRacePace.avgPace}`);
-        // IMPORTANTE: Usar pace da race pace para corrida (mais preciso para prova)
-        runStats.avgVelocityRaw = runRacePace.avgPaceRaw;
-        runStats.avgPaceOrSpeed = runRacePace.avgPace;
-    }
-
-    // Detectar Brick Runs (bike+run no mesmo dia)
-    const brickRuns = detectBrickRuns(csvData);
-    console.log(`🔄 Brick Runs detectados: ${brickRuns.length}`);
-
-    // Detectar Race Pace Sessions
-    const racePaceSessions = detectRacePaceSessions(run);
-    console.log(`🎯 Race Pace Sessions: ${racePaceSessions.length}`);
-
-    // ══════════════════════════════════════════════════════════════════════════════
     // PASSO 3: CALCULAR MÉTRICAS GERAIS
     // ══════════════════════════════════════════════════════════════════════════════
 
@@ -1175,17 +637,6 @@ function generateIronmanReport(csvData, athleteName, eventName, eventDate, event
     const swimTable = generateSwimTable(swimLong);
     const bikeTable = generateBikeTable(bikeLong);
     const runTable = generateRunTable(runLong);
-
-    // ══════════════════════════════════════════════════════════════════════════════
-    // PASSO 5.5: GERAR HTML PARA SEÇÕES AVANÇADAS
-    // ══════════════════════════════════════════════════════════════════════════════
-
-    console.log('📄 Gerando HTML para seções avançadas...');
-
-    const raceHistoryHTML = generateRaceHistoryHTML(races);
-    const tempoZoneSwimHTML = generateTempoZoneSwimHTML(swimTempoZone);
-    const tempoZoneBikeHTML = generateTempoZoneBikeHTML(bikeTempoZone);
-    const racePaceRunHTML = generateRacePaceRunHTML(runRacePace, brickRuns, racePaceSessions);
 
     // ══════════════════════════════════════════════════════════════════════════════
     // PASSO 6: CALCULAR 3 CENÁRIOS DE PROVA
@@ -1243,14 +694,6 @@ function generateIronmanReport(csvData, athleteName, eventName, eventDate, event
     html = html.replace('<!-- INSERIR TABELA NATAÇÃO AQUI -->', swimTable);
     html = html.replace('<!-- INSERIR TABELA BIKE AQUI -->', bikeTable);
     html = html.replace('<!-- INSERIR TABELA CORRIDA AQUI -->', runTable);
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // SEÇÃO 2.5: HISTÓRICO DE PROVAS E ANÁLISES AVANÇADAS
-    // ─────────────────────────────────────────────────────────────────────────────
-    html = html.replace('<!-- INSERIR HISTÓRICO DE PROVAS AQUI -->', raceHistoryHTML);
-    html = html.replace('<!-- INSERIR ZONA TEMPO NATAÇÃO AQUI -->', tempoZoneSwimHTML);
-    html = html.replace('<!-- INSERIR ZONA TEMPO CICLISMO AQUI -->', tempoZoneBikeHTML);
-    html = html.replace('<!-- INSERIR RACE PACE CORRIDA AQUI -->', racePaceRunHTML);
 
     // ─────────────────────────────────────────────────────────────────────────────
     // SEÇÃO 3: CENÁRIOS DE PROVA - META A (AGRESSIVO)
