@@ -12,7 +12,7 @@ Sistema automatizado que processa dados de treino do TrainingPeaks (formato CSV)
 - ✅ **Sem Hardcoding** - Totalmente dinâmico
 - ✅ **3 Cenários de Prova** - Meta A (Agressivo), B (Realista), C (Conservador)
 - ✅ **Design Profissional** - Template SAAB Sports oficial
-
+s
 ---
 
 ## 🚀 Como Usar
@@ -23,7 +23,7 @@ Sistema automatizado que processa dados de treino do TrainingPeaks (formato CSV)
 2. Preencha o formulário:
    - 📊 Upload do CSV do TrainingPeaks
    - 👤 Nome do atleta
-   - 🏆 Nome da prova
+   - 🏆 Nome da prova'
    - 📅 Data da prova
    - 📍 Local da prova
    - 🎯 Tipo de prova (Sprint/Olímpico/70.3/Full)
