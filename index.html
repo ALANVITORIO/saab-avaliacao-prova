@@ -185,6 +185,17 @@
                                 <label for="eventLocation" class="block text-xs font-bold text-brand-dark mb-2 uppercase tracking-wide">Local do Evento</label>
                                 <input type="text" id="eventLocation" placeholder="Ex: Florianópolis, SC" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-brand-red focus:ring-4 focus:ring-brand-red/10 transition-all bg-white hover:border-gray-300">
                             </div>
+
+                            <div class="col-span-2" id="raceTypeGroup">
+                                <label for="raceType" class="block text-xs font-bold text-brand-dark mb-2 uppercase tracking-wide">Tipo de Prova (Triathlon)</label>
+                                <select id="raceType" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-brand-red focus:ring-4 focus:ring-brand-red/10 transition-all bg-white hover:border-gray-300">
+                                    <option value="">Selecione o tipo de prova...</option>
+                                    <option value="SPRINT">Sprint (750m / 20km / 5km)</option>
+                                    <option value="OLÍMPICO">Olímpico (1.5km / 40km / 10km)</option>
+                                    <option value="70.3" selected>70.3 (1.9km / 90km / 21.1km)</option>
+                                    <option value="FULL">Ironman Full (3.8km / 180km / 42.2km)</option>
+                                </select>
+                            </div>
                         </div>
                     </section>
 
@@ -248,10 +259,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="scripts/csv-parser.js"></script>
-    <script src="scripts/data-mapper.js"></script>
-    <script src="scripts/template-engine.js"></script>
-    <script src="scripts/app-generator.js"></script>
+    <script src="scripts/ironman-report-generator.js"></script>
+    <script src="scripts/app.js"></script>
 
 </body>
 </html>
