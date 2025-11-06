@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise e Estratégia - SAAB Sports</title>
+    
+    <!--
+    ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    ║                          PROTOCOLO DE ATENDIMENTO - SAAB SPORTS                                                  ║
+    ║                       TEMPLATE ANÁLISE E ESTRATÉGIA TRIATHLON/IRONMAN                                            ║
+    ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    INSTRUÇÕES PARA IA QUE VAI PROCESSAR ESTE TEMPLATE:
+    
+    Este HTML é um template VAZIO que você deve preencher seguindo RIGOROSAMENTE o protocolo abaixo.
+    Não pule etapas. Não gere nada antes de completar todas as informações.
+    
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    📋 PASSO 1: COLETA DE INFORMAÇÕES BÁSICAS
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    Faça as seguintes perguntas à cliente (uma de cada vez):
+    
+    1️⃣ "Qual o nome completo do(a) atleta?"
+       → Armazenar como: ATHLETE_NAME
+    
+    2️⃣ "Qual o nome completo da prova?"
+       → Armazenar como: EVENT_NAME
+       → Exemplo: "Ironman 70.3 Florianópolis 2025"
+    
+    3️⃣ "Qual a data da prova?"
+       → Armazenar como: EVENT_DATE
+       → Formato obrigatório: DD/MM/YYYY
+    
+    4️⃣ "Qual a cidade/local da prova?"
+       → Armazenar como: EVENT_LOCATION
+       → Exemplo: "Florianópolis, SC"
+    
+    5️⃣ "Qual o tipo/distância da prova?"
+       → Opções válidas: SPRINT / OLÍMPICO / 70.3 / IRONMAN FULL
+       → Armazenar como: RACE_TYPE
+       → Isso define AUTOMATICAMENTE as distâncias:
+          • SPRINT: 750m swim / 20km bike / 5km run = 25.75km total
+          • OLÍMPICO: 1.5km swim / 40km bike / 10km run = 51.5km total
+          • 70.3: 1.9km swim / 90km bike / 21.1km run = 113km total
+          • FULL: 3.8km swim / 180km bike / 42.2km run = 226km total
+    
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    📁 PASSO 2: SOLICITAÇÃO E VALIDAÇÃO DO CSV
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    Após coletar todas as informações básicas, solicite:
+    
+    "Perfeito! Agora preciso do arquivo CSV do TrainingPeaks com os treinos do período de preparação.
+    Por favor, envie o arquivo CSV exportado do TrainingPeaks."
+    
+    Quando receber o arquivo CSV:
+    
+    1. Carregue e leia completamente o arquivo
+    2. Identifique a estrutura (colunas obrigatórias: WorkoutType, WorkoutDay, DistanceInMeters, VelocityAverage, 
+       TimeTotalInHours, HeartRateAverage)
+    3. Conte o total de linhas (treinos)
+    4. Identifique o período (primeira e última data)
+    5. Armazene TODO o conteúdo na memória da conversa
+    
+    Confirme o recebimento:
+    "✅ CSV recebido e processado!
+    📊 Encontrei [X] treinos no período de [DATA_INICIO] a [DATA_FIM] ([X] semanas).
+    
+    Agora vou processar os dados..."
+    
+    IMPORTANTE: NÃO GERE O HTML AINDA! Apenas confirme o recebimento e prossiga para o PASSO 3.
+    
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    🔍 PASSO 3: ANÁLISE E PROCESSAMENTO DOS DADOS DO CSV
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    Agora processe o CSV seguindo estas instruções:
+    
+    ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │ 3.1 - FILTRAR DADOS POR MODALIDADE                                                                             │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    
+    Separar treinos por modalidade usando a coluna WorkoutType:
+    - Natação: WorkoutType = "Swim" OU contém "swim" (case insensitive)
+    - Ciclismo: WorkoutType = "Bike" OU "Ride" OU contém "bike/cycle" (case insensitive)
+    - Corrida: WorkoutType = "Run" OU contém "run" (case insensitive)
+    - IGNORAR: WorkoutType = "Day Off" / "Rest" / "Strength"
+    
+    ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │ 3.2 - CALCULAR MÉTRICAS AGREGADAS (Para Seção 1: Resumo da Preparação)                                        │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    
+    Para CADA modalidade (Swim/Bike/Run), calcule:
+    
+    A) TOTAL DE TREINOS
+       → COUNT(*) onde modalidade = X
+       → Armazenar: SWIM_WORKOUTS / BIKE_WORKOUTS / RUN_WORKOUTS
+    
+    B) VOLUME TOTAL
+       → SUM(DistanceInMeters) / 1000 (converter para km)
+       → Armazenar: SWIM_TOTAL_KM / BIKE_TOTAL_KM / RUN_TOTAL_KM
+       → Formato: 1 casa decimal (ex: "15.3 km")
+    
+    C) PACE/VELOCIDADE MÉDIA
+       → AVG(VelocityAverage) considerando apenas treinos com VelocityAverage > 0
+       → CONVERSÕES OBRIGATÓRIAS:
+          
+          NATAÇÃO: m/s → min:ss/100m
+          Fórmula: pace_segundos = 100 / velocidade_m_s
+                   minutos = floor(pace_segundos / 60)
+                   segundos = pace_segundos % 60
+          Formato final: "M:SS/100m" (ex: "1:45/100m")
+          Armazenar: SWIM_AVG_PACE
+          
+          CICLISMO: m/s → km/h
+          Fórmula: velocidade_kmh = velocidade_m_s * 3.6
+          Formato final: "XX.X km/h" (ex: "32.5 km/h")
+          Armazenar: BIKE_AVG_SPEED
+          
+          CORRIDA: m/s → min:ss/km
+          Fórmula: pace_segundos = 1000 / velocidade_m_s
+                   minutos = floor(pace_segundos / 60)
+                   segundos = pace_segundos % 60
+          Formato final: "M:SS/km" (ex: "6:30/km")
+          Armazenar: RUN_AVG_PACE
+    
+    D) MELHOR TREINO (melhor performance)
+       → Para natação/corrida: MENOR pace (mais rápido)
+       → Para ciclismo: MAIOR velocidade
+       → Formato: "X.Xkm - pace/vel" (ex: "10.5km - 6:15/km")
+       → Armazenar: SWIM_BEST_WORKOUT / BIKE_BEST_WORKOUT / RUN_BEST_WORKOUT
+    
+    E) MÉTRICAS GERAIS
+       → TOTAL_WEEKS: Diferença em semanas entre primeira e última data do CSV
+       → TOTAL_HOURS: SUM(TimeTotalInHours) de TODOS os treinos
+       → TOTAL_WORKOUTS: COUNT(*) excluindo Day Off
+    
+    ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │ 3.3 - IDENTIFICAR TREINOS LONGOS (Para Seção 2: Tabelas)                                                       │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    
+    Filtrar treinos longos baseado no RACE_TYPE:
+    
+    SE RACE_TYPE = "SPRINT":
+       - Natação: DistanceInMeters ≥ 600
+       - Ciclismo: DistanceInMeters ≥ 15000
+       - Corrida: DistanceInMeters ≥ 3500
+    
+    SE RACE_TYPE = "OLÍMPICO":
+       - Natação: DistanceInMeters ≥ 1200
+       - Ciclismo: DistanceInMeters ≥ 35000
+       - Corrida: DistanceInMeters ≥ 8000
+    
+    SE RACE_TYPE = "70.3":
+       - Natação: DistanceInMeters ≥ 2500
+       - Ciclismo: DistanceInMeters ≥ 70000
+       - Corrida: DistanceInMeters ≥ 15000
+    
+    SE RACE_TYPE = "FULL":
+       - Natação: DistanceInMeters ≥ 3500
+       - Ciclismo: DistanceInMeters ≥ 140000
+       - Corrida: DistanceInMeters ≥ 28000
+    
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    🎯 PASSO 4: CÁLCULO DOS 3 CENÁRIOS DE PROVA
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    Calcular 3 cenários baseados nas performances de treino.
+    
+    Os cenários devem ser preenchidos nos placeholders:
+    - {{AGRESSIVO_*}} para META A
+    - {{REALISTA_*}} para META B  
+    - {{CONSERVADOR_*}} para META C
+    
+    E no objeto JavaScript scenarios com os valores calculados.
+    
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    📝 PASSO 5: PREENCHIMENTO FINAL DO HTML
+    ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+    
+    AGORA BASTA FAZER BUSCA E SUBSTITUIÇÃO DOS PLACEHOLDERS:
+    
+    Exemplo:
+    html.replace('Sarah Lotif', 'Sarah Lotif')
+    html.replace('21', '21')
+    html.replace('51.9 km', '51.9 km')
+    
+    TODOS os placeholders estão claramente marcados com {{NOME_VARIAVEL}} no HTML abaixo.
+    IMPOSSÍVEL errar!
+    
+    -->
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #400404 0%, #D0494E 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .section {
+            padding: 50px 40px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+        .section-number {
+            background: #D0494E;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        .section-title {
+            font-size: 2em;
+            color: #400404;
+            font-weight: 700;
+        }
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .overview-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 5px solid #D0494E;
+        }
+        .overview-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #400404;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .overview-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(208, 73, 78, 0.2);
+        }
+        .overview-stat:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            font-size: 0.95em;
+            color: #666;
+        }
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #D0494E;
+        }
+        .scenario-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .scenario-card.active {
+            border: 4px solid #D0494E;
+            box-shadow: 0 4px 20px rgba(156, 39, 176, 0.2);
+        }
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div style="font-size:2.5em;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1.5px">Sarah Lotif</div>
+            <div style="font-size:1.3em;font-weight:300;opacity:0.95;margin-bottom:5px">Ironman 70.3 Florianópolis 2025</div>
+            <div style="font-size:1.05em;opacity:0.9">26 de Outubro | Praia dos Ingleses, SC</div>
+            
+            <div style="margin-top:35px;padding-top:35px;border-top:1px solid rgba(255,255,255,0.2);text-align:center">
+                <div style="font-size:1.1em;opacity:0.9;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">Classificação de Performance</div>
+                <div style="font-size:2.8em;font-weight:700;text-transform:uppercase;letter-spacing:2px">EXCELENTE</div>
+                <div style="font-size:1.05em;opacity:0.9;margin-top:12px">Preparação sólida com volumes adequados e evolução consistente</div>
+                <div style="font-size:0.95em;opacity:0.85;margin-top:15px">Período: 11 semanas | 88 treinos | 113.8h de volume</div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 1: RESUMO DA PREPARAÇÃO -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <h2 class="section-title">Resumo da Preparação</h2>
+            </div>
+            <div class="overview-grid">
+                <div class="overview-card">
+                    <div class="overview-title">NATAÇÃO</div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Treinos Realizados</span>
+                        <span class="stat-value">21</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Volume Total</span>
+                        <span class="stat-value">51.9 km</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Pace Médio</span>
+                        <span class="stat-value">1:58/100m</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Melhor Treino</span>
+                        <span class="stat-value">2.1km - 1:41/100m</span>
+                    </div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-title">CICLISMO</div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Treinos Realizados</span>
+                        <span class="stat-value">35</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Volume Total</span>
+                        <span class="stat-value">1756.5 km</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Velocidade Média</span>
+                        <span class="stat-value">26.5 km/h</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Melhor Treino</span>
+                        <span class="stat-value">115.0km - 38.3 km/h</span>
+                    </div>
+                </div>
+                <div class="overview-card">
+                    <div class="overview-title">CORRIDA</div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Treinos Realizados</span>
+                        <span class="stat-value">32</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Volume Total</span>
+                        <span class="stat-value">383.4 km</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Pace Médio</span>
+                        <span class="stat-value">5:03/km</span>
+                    </div>
+                    <div class="overview-stat">
+                        <span class="stat-label">Melhor Treino</span>
+                        <span class="stat-value">6.7km - 4:30/km</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: PRINCIPAIS TREINOS -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <h2 class="section-title">Principais Treinos Realizados</h2>
+            </div>
+            <h3 style="font-size:1.5em;margin-bottom:20px;color:#400404">NATAÇÃO - Treinos Longos do Período</h3>
+            
+    <table style="width:100%;border-collapse:collapse;margin:20px 0">
+        <thead>
+            <tr style="background:#400404;color:white">
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Data</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Distância</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Tempo</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Pace</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">FC Média</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">14/10</td>
+                <td style="padding:12px;border:1px solid #ddd">3.2 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 14min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">2:20/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">123 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">12/10</td>
+                <td style="padding:12px;border:1px solid #ddd">2.7 km</td>
+                <td style="padding:12px;border:1px solid #ddd">60min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">2:14/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">126 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">03/10</td>
+                <td style="padding:12px;border:1px solid #ddd">3.5 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 5min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:51/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">125 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">24/09</td>
+                <td style="padding:12px;border:1px solid #ddd">3.2 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:53/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">133 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">16/09</td>
+                <td style="padding:12px;border:1px solid #ddd">2.6 km</td>
+                <td style="padding:12px;border:1px solid #ddd">54min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">2:06/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">136 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">04/09</td>
+                <td style="padding:12px;border:1px solid #ddd">3.4 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:48/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">112 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">02/09</td>
+                <td style="padding:12px;border:1px solid #ddd">3.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">51min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:43/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">128 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">06/08</td>
+                <td style="padding:12px;border:1px solid #ddd">2.8 km</td>
+                <td style="padding:12px;border:1px solid #ddd">49min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:45/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">133 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">05/08</td>
+                <td style="padding:12px;border:1px solid #ddd">2.6 km</td>
+                <td style="padding:12px;border:1px solid #ddd">49min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:52/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">152 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">01/08</td>
+                <td style="padding:12px;border:1px solid #ddd">3.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">53min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">1:45/100m</td>
+                <td style="padding:12px;border:1px solid #ddd">112 bpm</td>
+            </tr>
+        </tbody>
+    </table>
+
+            <h3 style="font-size:1.5em;margin:40px 0 20px 0;color:#400404">CICLISMO - Treinos Longos do Período</h3>
+            
+    <table style="width:100%;border-collapse:collapse;margin:20px 0">
+        <thead>
+            <tr style="background:#400404;color:white">
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Data</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Distância</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Tempo</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Velocidade</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">FC Média</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">11/10</td>
+                <td style="padding:12px;border:1px solid #ddd">90.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">2h 35min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">34.7 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">131 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">04/10</td>
+                <td style="padding:12px;border:1px solid #ddd">115.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">3h</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">38.3 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">142 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">23/09</td>
+                <td style="padding:12px;border:1px solid #ddd">70.7 km</td>
+                <td style="padding:12px;border:1px solid #ddd">2h 60min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">23.6 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">132 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">06/09</td>
+                <td style="padding:12px;border:1px solid #ddd">98.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">3h 30min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">28.0 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">125 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">16/08</td>
+                <td style="padding:12px;border:1px solid #ddd">150.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">4h</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">37.5 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">135 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">02/08</td>
+                <td style="padding:12px;border:1px solid #ddd">70.5 km</td>
+                <td style="padding:12px;border:1px solid #ddd">3h</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">23.5 km/h</td>
+                <td style="padding:12px;border:1px solid #ddd">116 bpm</td>
+            </tr>
+        </tbody>
+    </table>
+
+            <h3 style="font-size:1.5em;margin:40px 0 20px 0;color:#400404">CORRIDA - Treinos Longos do Período</h3>
+            
+    <table style="width:100%;border-collapse:collapse;margin:20px 0">
+        <thead>
+            <tr style="background:#400404;color:white">
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Data</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Distância</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Tempo</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">Pace</th>
+                <th style="padding:15px;text-align:left;border:1px solid #ddd">FC Média</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">08/10</td>
+                <td style="padding:12px;border:1px solid #ddd">21.3 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 48min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">5:05/km</td>
+                <td style="padding:12px;border:1px solid #ddd">167 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">05/10</td>
+                <td style="padding:12px;border:1px solid #ddd">17.7 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 30min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">5:06/km</td>
+                <td style="padding:12px;border:1px solid #ddd">162 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">20/09</td>
+                <td style="padding:12px;border:1px solid #ddd">15.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 17min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">5:07/km</td>
+                <td style="padding:12px;border:1px solid #ddd">172 bpm</td>
+            </tr>
+            <tr style="background:white">
+                <td style="padding:12px;border:1px solid #ddd">07/09</td>
+                <td style="padding:12px;border:1px solid #ddd">19.0 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 41min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">5:18/km</td>
+                <td style="padding:12px;border:1px solid #ddd">161 bpm</td>
+            </tr>
+            <tr style="background:#f9f9f9">
+                <td style="padding:12px;border:1px solid #ddd">15/08</td>
+                <td style="padding:12px;border:1px solid #ddd">16.1 km</td>
+                <td style="padding:12px;border:1px solid #ddd">1h 15min</td>
+                <td style="padding:12px;border:1px solid #ddd;font-weight:600;color:#D0494E">4:39/km</td>
+                <td style="padding:12px;border:1px solid #ddd">171 bpm</td>
+            </tr>
+        </tbody>
+    </table>
+        </div>
+
+        <!-- SEÇÃO 3: CENÁRIOS DE TEMPO -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <h2 class="section-title">Cenários de Tempo</h2>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:25px;margin-bottom:40px" id="scenarioCards">
+                <!-- META A - AGRESSIVO -->
+                <div class="scenario-card active" data-scenario="agressivo">
+                    <div style="position:absolute;top:-15px;left:50%;transform:translateX(-50%);background:#D0494E;color:white;padding:8px 24px;border-radius:20px;font-weight:700;font-size:0.85em;letter-spacing:1px">RECOMENDADA</div>
+                    <div style="text-align:center;margin-bottom:25px;margin-top:10px">
+                        <div style="font-size:1.1em;margin-bottom:8px;text-transform:uppercase;letter-spacing:1.5px;color:#D0494E;font-weight:700">META A</div>
+                        <div style="font-size:2.5em;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#400404">AGRESSIVO</div>
+                        <div style="font-size:0.95em;margin-top:10px;color:#666">Dia Perfeito</div>
+                    </div>
+                    <div style="background:#f5f5f5;border-radius:10px;padding:20px;margin-bottom:20px;flex-grow:1">
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Natação</span>
+                            <strong>32min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 1:42/100m</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T1</span>
+                            <strong>4 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Bike</span>
+                            <strong>3h 2min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Vel: 29.7 km/h</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T2</span>
+                            <strong>2 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Run</span>
+                            <strong>1h 34min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 4:28/km</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:20px;background:#f5f5f5;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:5px">TEMPO TOTAL</div>
+                        <div style="font-size:2.5em;font-weight:700;color:#D0494E">5h 15min</div>
+                    </div>
+                </div>
+
+                <!-- META B - REALISTA -->
+                <div class="scenario-card" data-scenario="realista">
+                    <div style="text-align:center;margin-bottom:25px">
+                        <div style="font-size:1.1em;margin-bottom:8px;text-transform:uppercase;letter-spacing:1.5px;color:#D0494E;font-weight:700">META B</div>
+                        <div style="font-size:2.5em;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#400404">REALISTA</div>
+                        <div style="font-size:0.95em;margin-top:10px;color:#666">Estratégia Sólida</div>
+                    </div>
+                    <div style="background:#f5f5f5;border-radius:10px;padding:20px;margin-bottom:20px;flex-grow:1">
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Natação</span>
+                            <strong>37min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 1:58/100m</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T1</span>
+                            <strong>4 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Bike</span>
+                            <strong>3h 24min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Vel: 26.5 km/h</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T2</span>
+                            <strong>3 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Run</span>
+                            <strong>1h 47min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 5:03/km</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:20px;background:#f5f5f5;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:5px">TEMPO TOTAL</div>
+                        <div style="font-size:2.5em;font-weight:700;color:#D0494E">5h 55min</div>
+                    </div>
+                </div>
+
+                <!-- META C - CONSERVADOR -->
+                <div class="scenario-card" data-scenario="conservador">
+                    <div style="text-align:center;margin-bottom:25px">
+                        <div style="font-size:1.1em;margin-bottom:8px;text-transform:uppercase;letter-spacing:1.5px;color:#D0494E;font-weight:700">META C</div>
+                        <div style="font-size:2.5em;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#400404">CONSERVADOR</div>
+                        <div style="font-size:0.95em;margin-top:10px;color:#666">Terminar Forte</div>
+                    </div>
+                    <div style="background:#f5f5f5;border-radius:10px;padding:20px;margin-bottom:20px;flex-grow:1">
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Natação</span>
+                            <strong>41min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 2:08/100m</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T1</span>
+                            <strong>4 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Bike</span>
+                            <strong>3h 37min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Vel: 24.9 km/h</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>T2</span>
+                            <strong>4 min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e0e0e0;color:#333">
+                            <span>Run</span>
+                            <strong>1h 55min</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:10px 0;color:#666">
+                            <span style="font-size:0.85em;padding-left:10px">Pace: 5:26/km</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center;padding:20px;background:#f5f5f5;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:5px">TEMPO TOTAL</div>
+                        <div style="font-size:2.5em;font-weight:700;color:#D0494E">6h 20min</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 4: ESTRATÉGIA POR MODALIDADE -->
+        <div class="section" style="background:#f9f9f9">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <h2 class="section-title">Estratégia de Prova por Modalidade</h2>
+            </div>
+            
+            <!-- Estratégia Natação -->
+            <div style="background:white;border-radius:15px;padding:30px;margin-bottom:30px;border-left:5px solid #D0494E">
+                <h3 style="color:#400404;font-size:1.5em;margin-bottom:20px">🏊 NATAÇÃO (1.9km)</h3>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:25px">
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Pace Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-swim-pace></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Tempo Estimado</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-swim-time></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">FC Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-swim-hr></div>
+                    </div>
+                </div>
+                <div style="background:#fef2f2;padding:20px;border-radius:10px;margin-top:20px">
+                    <strong style="color:#400404;display:block;margin-bottom:15px;font-size:1.1em">Divisão por Zonas:</strong>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 1 (0-400m)</div>
+                            <div style="font-weight:700;color:#D0494E" data-swim-zone1-pace></div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 2 (400m-1500m)</div>
+                            <div style="font-weight:700;color:#D0494E" data-swim-zone2-pace></div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 3 (1500m-fim)</div>
+                            <div style="font-weight:700;color:#D0494E" data-swim-zone3-pace></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estratégia Ciclismo -->
+            <div style="background:white;border-radius:15px;padding:30px;margin-bottom:30px;border-left:5px solid #D0494E">
+                <h3 style="color:#400404;font-size:1.5em;margin-bottom:20px">🚴 CICLISMO (90km)</h3>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:25px">
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Velocidade</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-bike-speed></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Tempo Estimado</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-bike-time></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">FC Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-bike-hr></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">NP Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-bike-np></div>
+                    </div>
+                </div>
+                <div style="background:#fef2f2;padding:20px;border-radius:10px;margin-top:20px">
+                    <strong style="color:#400404;display:block;margin-bottom:15px;font-size:1.1em">Divisão por Zonas:</strong>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 1 (0-30km)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Vel: <span data-bike-zone1-speed></span><br>
+                                FC: <span data-bike-zone1-hr></span><br>
+                                NP: <span data-bike-zone1-np></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 2 (30-75km)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Vel: <span data-bike-zone2-speed></span><br>
+                                FC: <span data-bike-zone2-hr></span><br>
+                                NP: <span data-bike-zone2-np></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 3 (75km-fim)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Vel: <span data-bike-zone3-speed></span><br>
+                                FC: <span data-bike-zone3-hr></span><br>
+                                NP: <span data-bike-zone3-np></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estratégia Corrida -->
+            <div style="background:white;border-radius:15px;padding:30px;border-left:5px solid #D0494E">
+                <h3 style="color:#400404;font-size:1.5em;margin-bottom:20px">🏃 CORRIDA (21.1km)</h3>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:25px">
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Pace Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-run-pace></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">Tempo Estimado</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-run-time></div>
+                    </div>
+                    <div style="background:#f5f5f5;padding:20px;border-radius:10px">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:8px">FC Alvo</div>
+                        <div style="font-size:1.6em;font-weight:700;color:#D0494E" data-run-hr></div>
+                    </div>
+                </div>
+                <div style="background:#fef2f2;padding:20px;border-radius:10px;margin-top:20px">
+                    <strong style="color:#400404;display:block;margin-bottom:15px;font-size:1.1em">Divisão por Zonas:</strong>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 1 (0-5km)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Pace: <span data-run-zone1-pace></span><br>
+                                FC: <span data-run-zone1-hr></span><br>
+                                Tempo: <span data-run-zone1-time></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 2 (5-19km)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Pace: <span data-run-zone2-pace></span><br>
+                                FC: <span data-run-zone2-hr></span><br>
+                                Tempo: <span data-run-zone2-time></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="color:#666;font-size:0.85em;margin-bottom:5px">Zona 3 (19km-fim)</div>
+                            <div style="font-weight:700;color:#D0494E;font-size:0.9em">
+                                Pace: <span data-run-zone3-pace></span><br>
+                                FC: <span data-run-zone3-hr></span><br>
+                                Tempo: <span data-run-zone3-time></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 5: RECOMENDAÇÕES FINAIS -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <h2 class="section-title">Recomendações Finais</h2>
+            </div>
+            <div style="background:linear-gradient(135deg,#fef2f2 0%,#fee2e2 100%);border-radius:15px;padding:40px;border-left:5px solid #D0494E">
+                <p style="font-size:1.1em;line-height:1.8;color:#333;margin-bottom:20px">
+                    Baseado na análise completa da sua preparação, você demonstrou consistência e evolução em todas as modalidades. 
+                    Seus treinos longos mostram que você está preparado(a) para enfrentar o desafio do <strong>Ironman 70.3 Florianópolis 2025</strong>.
+                </p>
+                <p style="font-size:1.1em;line-height:1.8;color:#333;margin-bottom:20px">
+                    <strong style="color:#D0494E">Recomendação de Meta:</strong> Sugerimos focar na <strong>META A (Agressivo)</strong> 
+                    como objetivo principal, com a META B como plano de contingência caso as condições não estejam ideais no dia da prova.
+                </p>
+                <div style="background:white;padding:25px;border-radius:10px;margin-top:25px">
+                    <strong style="color:#400404;font-size:1.2em;display:block;margin-bottom:15px">Pontos de Atenção:</strong>
+                    <ul style="list-style:none;padding:0">
+                        <li style="padding:10px 0;border-bottom:1px solid #f0f0f0">✓ Mantenha a hidratação e nutrição conforme treinado</li>
+                        <li style="padding:10px 0;border-bottom:1px solid #f0f0f0">✓ Respeite o pacing do início, principalmente na natação e bike</li>
+                        <li style="padding:10px 0;border-bottom:1px solid #f0f0f0">✓ As transições podem ganhar/perder minutos - pratique!</li>
+                        <li style="padding:10px 0">✓ Confie no seu treino e aproveite a experiência!</li>
+                    </ul>
+                </div>
+                <div style="text-align:center;margin-top:30px;padding-top:30px;border-top:2px solid rgba(208,73,78,0.2)">
+                    <div style="font-size:1.3em;color:#400404;font-weight:700;margin-bottom:10px">Boa prova! 🏊🚴🏃</div>
+                    <div style="font-size:0.95em;color:#666">Análise gerada por SAAB Sports</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PREENCHA ESTE OBJETO COM OS DADOS CALCULADOS DOS 3 CENÁRIOS
+        const scenarios = {
+            agressivo: {
+                swim: {
+                    pace: '1:42/100m',
+                    time: '32min',
+                    hr: '132-142 bpm',
+                    zone1Pace: '2:00/100m',
+                    zone2Pace: '1:50/100m',
+                    zone3Pace: '1:45/100m'
+                },
+                bike: {
+                    speed: '29.7 km/h',
+                    time: '3h 2min',
+                    hr: '138-148 bpm',
+                    np: '180-190W',
+                    zone1Speed: '28 km/h',
+                    zone1Hr: '130 bpm',
+                    zone1Np: '160W',
+                    zone2Speed: '32 km/h',
+                    zone2Hr: '140 bpm',
+                    zone2Np: '180W',
+                    zone3Speed: '30 km/h',
+                    zone3Hr: '135 bpm',
+                    zone3Np: '170W'
+                },
+                run: {
+                    pace: '4:28/km',
+                    time: '1h 34min',
+                    hr: '170-177 bpm',
+                    zone1Pace: '5:20/km',
+                    zone1Hr: '165 bpm',
+                    zone1Time: '27min',
+                    zone2Pace: '4:50/km',
+                    zone2Hr: '172 bpm',
+                    zone2Time: '68min',
+                    zone3Pace: '4:40/km',
+                    zone3Hr: '175 bpm',
+                    zone3Time: '10min'
+                }
+            },
+            realista: {
+                swim: {
+                    pace: '1:58/100m',
+                    time: '37min',
+                    hr: '128-138 bpm',
+                    zone1Pace: '2:00/100m',
+                    zone2Pace: '1:50/100m',
+                    zone3Pace: '1:45/100m'
+                },
+                bike: {
+                    speed: '26.5 km/h',
+                    time: '3h 24min',
+                    hr: '133-143 bpm',
+                    np: '170-180W',
+                    zone1Speed: '28 km/h',
+                    zone1Hr: '130 bpm',
+                    zone1Np: '160W',
+                    zone2Speed: '32 km/h',
+                    zone2Hr: '140 bpm',
+                    zone2Np: '180W',
+                    zone3Speed: '30 km/h',
+                    zone3Hr: '135 bpm',
+                    zone3Np: '170W'
+                },
+                run: {
+                    pace: '5:03/km',
+                    time: '1h 47min',
+                    hr: '165-172 bpm',
+                    zone1Pace: '5:20/km',
+                    zone1Hr: '165 bpm',
+                    zone1Time: '27min',
+                    zone2Pace: '4:50/km',
+                    zone2Hr: '172 bpm',
+                    zone2Time: '68min',
+                    zone3Pace: '4:40/km',
+                    zone3Hr: '175 bpm',
+                    zone3Time: '10min'
+                }
+            },
+            conservador: {
+                swim: {
+                    pace: '2:08/100m',
+                    time: '41min',
+                    hr: '125-135 bpm',
+                    zone1Pace: '2:00/100m',
+                    zone2Pace: '1:50/100m',
+                    zone3Pace: '1:45/100m'
+                },
+                bike: {
+                    speed: '24.9 km/h',
+                    time: '3h 37min',
+                    hr: '128-138 bpm',
+                    np: '160-170W',
+                    zone1Speed: '28 km/h',
+                    zone1Hr: '130 bpm',
+                    zone1Np: '160W',
+                    zone2Speed: '32 km/h',
+                    zone2Hr: '140 bpm',
+                    zone2Np: '180W',
+                    zone3Speed: '30 km/h',
+                    zone3Hr: '135 bpm',
+                    zone3Np: '170W'
+                },
+                run: {
+                    pace: '5:26/km',
+                    time: '1h 55min',
+                    hr: '160-167 bpm',
+                    zone1Pace: '5:20/km',
+                    zone1Hr: '165 bpm',
+                    zone1Time: '27min',
+                    zone2Pace: '4:50/km',
+                    zone2Hr: '172 bpm',
+                    zone2Time: '68min',
+                    zone3Pace: '4:40/km',
+                    zone3Hr: '175 bpm',
+                    zone3Time: '10min'
+                }
+            }
+        };
+
+        let currentScenario = 'agressivo';
+
+        function selectScenario(scenario) {
+            currentScenario = scenario;
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                const cardScenario = card.getAttribute('data-scenario');
+                if (cardScenario === scenario) {
+                    card.style.border = '4px solid #D0494E';
+                    card.style.boxShadow = '0 4px 20px rgba(156, 39, 176, 0.2)';
+                    card.classList.add('active');
+                } else {
+                    card.style.border = '2px solid #e0e0e0';
+                    card.style.boxShadow = 'none';
+                    card.classList.remove('active');
+                }
+            });
+            const data = scenarios[scenario];
+            document.querySelector('[data-swim-pace]').textContent = data.swim.pace;
+            document.querySelector('[data-swim-time]').textContent = data.swim.time;
+            document.querySelector('[data-swim-hr]').textContent = data.swim.hr;
+            document.querySelector('[data-swim-zone1-pace]').textContent = data.swim.zone1Pace;
+            document.querySelector('[data-swim-zone2-pace]').textContent = data.swim.zone2Pace;
+            document.querySelector('[data-swim-zone3-pace]').textContent = data.swim.zone3Pace;
+            document.querySelector('[data-bike-speed]').textContent = data.bike.speed;
+            document.querySelector('[data-bike-time]').textContent = data.bike.time;
+            document.querySelector('[data-bike-hr]').textContent = data.bike.hr;
+            document.querySelector('[data-bike-zone1-speed]').textContent = data.bike.zone1Speed;
+            document.querySelector('[data-bike-zone1-hr]').textContent = data.bike.zone1Hr;
+            document.querySelector('[data-bike-zone2-speed]').textContent = data.bike.zone2Speed;
+            document.querySelector('[data-bike-zone2-hr]').textContent = data.bike.zone2Hr;
+            document.querySelector('[data-bike-zone3-speed]').textContent = data.bike.zone3Speed;
+            document.querySelector('[data-bike-zone3-hr]').textContent = data.bike.zone3Hr;
+            document.querySelector('[data-run-pace]').textContent = data.run.pace;
+            document.querySelector('[data-run-time]').textContent = data.run.time;
+            document.querySelector('[data-run-hr]').textContent = data.run.hr;
+            document.querySelector('[data-run-zone1-pace]').textContent = data.run.zone1Pace;
+            document.querySelector('[data-run-zone1-hr]').textContent = data.run.zone1Hr;
+            document.querySelector('[data-run-zone1-time]').textContent = data.run.zone1Time;
+            document.querySelector('[data-run-zone2-pace]').textContent = data.run.zone2Pace;
+            document.querySelector('[data-run-zone2-hr]').textContent = data.run.zone2Hr;
+            document.querySelector('[data-run-zone2-time]').textContent = data.run.zone2Time;
+            document.querySelector('[data-run-zone3-pace]').textContent = data.run.zone3Pace;
+            document.querySelector('[data-run-zone3-hr]').textContent = data.run.zone3Hr;
+            document.querySelector('[data-run-zone3-time]').textContent = data.run.zone3Time;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.scenario-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const scenario = this.getAttribute('data-scenario');
+                    document.querySelectorAll('.scenario-card').forEach(c => {
+                        if (c === this) {
+                            c.style.border = '4px solid #D0494E';
+                            c.style.boxShadow = '0 4px 20px rgba(156, 39, 176, 0.2)';
+                            c.classList.add('active');
+                        } else {
+                            c.style.border = '2px solid #e0e0e0';
+                            c.style.boxShadow = 'none';
+                            c.classList.remove('active');
+                        }
+                    });
+                    currentScenario = scenario;
+                    const data = scenarios[scenario];
+                    document.querySelector('[data-swim-pace]').textContent = data.swim.pace;
+                    document.querySelector('[data-swim-time]').textContent = data.swim.time;
+                    document.querySelector('[data-swim-hr]').textContent = data.swim.hr;
+                    document.querySelector('[data-swim-zone1-pace]').textContent = data.swim.zone1Pace;
+                    document.querySelector('[data-swim-zone2-pace]').textContent = data.swim.zone2Pace;
+                    document.querySelector('[data-swim-zone3-pace]').textContent = data.swim.zone3Pace;
+                    document.querySelector('[data-bike-speed]').textContent = data.bike.speed;
+                    document.querySelector('[data-bike-time]').textContent = data.bike.time;
+                    document.querySelector('[data-bike-hr]').textContent = data.bike.hr;
+                    document.querySelector('[data-bike-zone1-speed]').textContent = data.bike.zone1Speed;
+                    document.querySelector('[data-bike-zone1-hr]').textContent = data.bike.zone1Hr;
+                    document.querySelector('[data-bike-zone2-speed]').textContent = data.bike.zone2Speed;
+                    document.querySelector('[data-bike-zone2-hr]').textContent = data.bike.zone2Hr;
+                    document.querySelector('[data-bike-zone3-speed]').textContent = data.bike.zone3Speed;
+                    document.querySelector('[data-bike-zone3-hr]').textContent = data.bike.zone3Hr;
+                    document.querySelector('[data-run-pace]').textContent = data.run.pace;
+                    document.querySelector('[data-run-time]').textContent = data.run.time;
+                    document.querySelector('[data-run-hr]').textContent = data.run.hr;
+                    document.querySelector('[data-run-zone1-pace]').textContent = data.run.zone1Pace;
+                    document.querySelector('[data-run-zone1-hr]').textContent = data.run.zone1Hr;
+                    document.querySelector('[data-run-zone1-time]').textContent = data.run.zone1Time;
+                    document.querySelector('[data-run-zone2-pace]').textContent = data.run.zone2Pace;
+                    document.querySelector('[data-run-zone2-hr]').textContent = data.run.zone2Hr;
+                    document.querySelector('[data-run-zone2-time]').textContent = data.run.zone2Time;
+                    document.querySelector('[data-run-zone3-pace]').textContent = data.run.zone3Pace;
+                    document.querySelector('[data-run-zone3-hr]').textContent = data.run.zone3Hr;
+                    document.querySelector('[data-run-zone3-time]').textContent = data.run.zone3Time;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

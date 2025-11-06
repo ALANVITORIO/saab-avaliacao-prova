@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Gerador de Relatório Ironman</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #400404;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #D0494E;
+        }
+        button {
+            background: linear-gradient(135deg, #400404 0%, #D0494E 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        #preview {
+            margin-top: 30px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            display: none;
+        }
+        .download-btn {
+            background: #28a745;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏊🚴🏃 Teste - Gerador de Relatório Ironman</h1>
+
+        <form id="reportForm">
+            <!-- CSV Upload -->
+            <div class="form-group">
+                <label for="csvFile">📊 Arquivo CSV do TrainingPeaks *</label>
+                <input type="file" id="csvFile" accept=".csv" required>
+            </div>
+
+            <!-- Nome do Atleta -->
+            <div class="form-group">
+                <label for="athleteName">👤 Nome do Atleta *</label>
+                <input type="text" id="athleteName" placeholder="Ex: Sarah Lotif" required>
+            </div>
+
+            <!-- Nome da Prova -->
+            <div class="form-group">
+                <label for="eventName">🏆 Nome da Prova *</label>
+                <input type="text" id="eventName" placeholder="Ex: Ironman 70.3 Florianópolis 2025" required>
+            </div>
+
+            <!-- Data da Prova -->
+            <div class="form-group">
+                <label for="eventDate">📅 Data da Prova *</label>
+                <input type="text" id="eventDate" placeholder="Ex: 26 de Outubro" required>
+            </div>
+
+            <!-- Local da Prova -->
+            <div class="form-group">
+                <label for="eventLocation">📍 Local da Prova *</label>
+                <input type="text" id="eventLocation" placeholder="Ex: Praia dos Ingleses, SC" required>
+            </div>
+
+            <!-- Tipo de Prova -->
+            <div class="form-group">
+                <label for="raceType">🎯 Tipo de Prova *</label>
+                <select id="raceType" required>
+                    <option value="">Selecione...</option>
+                    <option value="SPRINT">Sprint (750m / 20km / 5km)</option>
+                    <option value="OLÍMPICO">Olímpico (1.5km / 40km / 10km)</option>
+                    <option value="70.3" selected>70.3 (1.9km / 90km / 21.1km)</option>
+                    <option value="FULL">Ironman Full (3.8km / 180km / 42.2km)</option>
+                </select>
+            </div>
+
+            <button type="submit" id="generateBtn">🚀 Gerar Relatório</button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div id="preview">
+            <h2 style="margin-bottom:20px">📄 Prévia do Relatório</h2>
+            <iframe id="reportFrame" style="width:100%;height:800px;border:none;background:white"></iframe>
+            <button class="download-btn" onclick="downloadReport()">⬇️ Download HTML</button>
+        </div>
+    </div>
+
+    <script src="scripts/ironman-report-generator.js"></script>
+    <script>
+        let generatedHTML = '';
+
+        document.getElementById('reportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const statusDiv = document.getElementById('status');
+            const generateBtn = document.getElementById('generateBtn');
+            const preview = document.getElementById('preview');
+
+            try {
+                // Desabilitar botão
+                generateBtn.disabled = true;
+                statusDiv.className = 'status info';
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = '⏳ Processando CSV...';
+
+                // Ler arquivo CSV
+                const fileInput = document.getElementById('csvFile');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    throw new Error('Nenhum arquivo selecionado');
+                }
+
+                // Parsear CSV
+                const csvText = await file.text();
+                const csvData = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true
+                }).data;
+
+                console.log('CSV parseado:', csvData.length, 'linhas');
+
+                statusDiv.textContent = '📊 Calculando métricas...';
+
+                // Obter valores do formulário
+                const athleteName = document.getElementById('athleteName').value;
+                const eventName = document.getElementById('eventName').value;
+                const eventDate = document.getElementById('eventDate').value;
+                const eventLocation = document.getElementById('eventLocation').value;
+                const raceType = document.getElementById('raceType').value;
+
+                // Carregar template
+                statusDiv.textContent = '📝 Carregando template...';
+                const templateResponse = await fetch('template-saab-com-placeholders.html');
+                const templateHTML = await templateResponse.text();
+
+                // Gerar relatório
+                statusDiv.textContent = '✨ Gerando relatório...';
+                generatedHTML = generateIronmanReport(
+                    csvData,
+                    athleteName,
+                    eventName,
+                    eventDate,
+                    eventLocation,
+                    raceType,
+                    templateHTML
+                );
+
+                // Mostrar preview
+                const iframe = document.getElementById('reportFrame');
+                iframe.srcdoc = generatedHTML;
+                preview.style.display = 'block';
+
+                // Sucesso
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ Relatório gerado com sucesso!';
+
+                // Scroll para preview
+                preview.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Erro:', error);
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Erro: ' + error.message;
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+
+        function downloadReport() {
+            if (!generatedHTML) {
+                alert('Nenhum relatório gerado ainda!');
+                return;
+            }
+
+            const athleteName = document.getElementById('athleteName').value;
+            const filename = `relatorio-${athleteName.replace(/\s+/g, '-').toLowerCase()}.html`;
+
+            const blob = new Blob([generatedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ Relatório baixado com sucesso!');
+        }
+    </script>
+</body>
+</html>
