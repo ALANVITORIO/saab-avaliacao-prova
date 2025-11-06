@@ -939,6 +939,176 @@ function generateRacePaceRunHTML(stats, brickRuns, racePaceSessions) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════════════════
+// FUNÇÕES DE CÁLCULO DINÂMICO (FC, NP, ZONAS)
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Calcula ranges de Frequência Cardíaca baseado nos dados reais do CSV
+ * Retorna FC para cada modalidade e cenário
+ */
+function calculateHeartRateRanges(swimWorkouts, bikeWorkouts, runWorkouts) {
+    // Calcular FC médio de cada modalidade
+    const swimHRs = swimWorkouts
+        .map(w => parseFloat(w.HeartRateAverage))
+        .filter(hr => !isNaN(hr) && hr > 0);
+    const swimAvgHR = swimHRs.length > 0 ? swimHRs.reduce((a, b) => a + b, 0) / swimHRs.length : 130;
+
+    const bikeHRs = bikeWorkouts
+        .map(w => parseFloat(w.HeartRateAverage))
+        .filter(hr => !isNaN(hr) && hr > 0);
+    const bikeAvgHR = bikeHRs.length > 0 ? bikeHRs.reduce((a, b) => a + b, 0) / bikeHRs.length : 140;
+
+    const runHRs = runWorkouts
+        .map(w => parseFloat(w.HeartRateAverage))
+        .filter(hr => !isNaN(hr) && hr > 0);
+    const runAvgHR = runHRs.length > 0 ? runHRs.reduce((a, b) => a + b, 0) / runHRs.length : 165;
+
+    return {
+        agressivo: {
+            swim: `${Math.round(swimAvgHR * 1.03)}-${Math.round(swimAvgHR * 1.08)} bpm`,
+            bike: `${Math.round(bikeAvgHR * 1.03)}-${Math.round(bikeAvgHR * 1.08)} bpm`,
+            run: `${Math.round(runAvgHR * 1.03)}-${Math.round(runAvgHR * 1.07)} bpm`
+        },
+        realista: {
+            swim: `${Math.round(swimAvgHR * 0.98)}-${Math.round(swimAvgHR * 1.03)} bpm`,
+            bike: `${Math.round(bikeAvgHR * 0.98)}-${Math.round(bikeAvgHR * 1.03)} bpm`,
+            run: `${Math.round(runAvgHR * 0.98)}-${Math.round(runAvgHR * 1.02)} bpm`
+        },
+        conservador: {
+            swim: `${Math.round(swimAvgHR * 0.93)}-${Math.round(swimAvgHR * 0.98)} bpm`,
+            bike: `${Math.round(bikeAvgHR * 0.93)}-${Math.round(bikeAvgHR * 0.98)} bpm`,
+            run: `${Math.round(runAvgHR * 0.95)}-${Math.round(runAvgHR * 0.99)} bpm`
+        }
+    };
+}
+
+/**
+ * Calcula ranges de Normalized Power (NP) para ciclismo
+ */
+function calculatePowerRanges(bikeWorkouts) {
+    const powers = bikeWorkouts
+        .map(w => parseFloat(w.PowerAverage))
+        .filter(p => !isNaN(p) && p > 0);
+
+    const avgPower = powers.length > 0 ? powers.reduce((a, b) => a + b, 0) / powers.length : 175;
+
+    return {
+        agressivo: `${Math.round(avgPower * 1.05)}-${Math.round(avgPower * 1.10)}W`,
+        realista: `${Math.round(avgPower * 0.98)}-${Math.round(avgPower * 1.03)}W`,
+        conservador: `${Math.round(avgPower * 0.92)}-${Math.round(avgPower * 0.97)}W`
+    };
+}
+
+/**
+ * Calcula valores de zonas personalizadas baseado nos dados do CSV
+ */
+function calculateZoneValues(swimStats, bikeStats, runStats, swimWorkouts, bikeWorkouts, runWorkouts, raceDistances) {
+    // Calcular FC médios
+    const swimHRs = swimWorkouts.map(w => parseFloat(w.HeartRateAverage)).filter(hr => !isNaN(hr) && hr > 0);
+    const swimAvgHR = swimHRs.length > 0 ? Math.round(swimHRs.reduce((a, b) => a + b, 0) / swimHRs.length) : 130;
+
+    const bikeHRs = bikeWorkouts.map(w => parseFloat(w.HeartRateAverage)).filter(hr => !isNaN(hr) && hr > 0);
+    const bikeAvgHR = bikeHRs.length > 0 ? Math.round(bikeHRs.reduce((a, b) => a + b, 0) / bikeHRs.length) : 140;
+
+    const runHRs = runWorkouts.map(w => parseFloat(w.HeartRateAverage)).filter(hr => !isNaN(hr) && hr > 0);
+    const runAvgHR = runHRs.length > 0 ? Math.round(runHRs.reduce((a, b) => a + b, 0) / runHRs.length) : 165;
+
+    // Calcular Power médio
+    const powers = bikeWorkouts.map(w => parseFloat(w.PowerAverage)).filter(p => !isNaN(p) && p > 0);
+    const avgPower = powers.length > 0 ? Math.round(powers.reduce((a, b) => a + b, 0) / powers.length) : 175;
+
+    return {
+        agressivo: {
+            swim: {
+                zone1Pace: convertSwimPace(swimStats.avgVelocityRaw * 0.90),
+                zone2Pace: convertSwimPace(swimStats.avgVelocityRaw * 1.05),
+                zone3Pace: convertSwimPace(swimStats.avgVelocityRaw * 1.10)
+            },
+            bike: {
+                zone1Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.85).toFixed(1)} km/h`,
+                zone1Hr: `${Math.round(bikeAvgHR * 0.90)} bpm`,
+                zone1Np: `${Math.round(avgPower * 0.85)}W`,
+                zone2Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 1.05).toFixed(1)} km/h`,
+                zone2Hr: `${Math.round(bikeAvgHR * 1.00)} bpm`,
+                zone2Np: `${Math.round(avgPower * 1.00)}W`,
+                zone3Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.95).toFixed(1)} km/h`,
+                zone3Hr: `${Math.round(bikeAvgHR * 0.95)} bpm`,
+                zone3Np: `${Math.round(avgPower * 0.90)}W`
+            },
+            run: {
+                zone1Pace: convertRunPace(runStats.avgVelocityRaw * 0.88),
+                zone1Hr: `${Math.round(runAvgHR * 0.93)} bpm`,
+                zone1Time: formatMinutes((raceDistances.run * 0.24) / (runStats.avgVelocityRaw * 0.88) / 60),
+                zone2Pace: convertRunPace(runStats.avgVelocityRaw * 1.02),
+                zone2Hr: `${Math.round(runAvgHR * 0.98)} bpm`,
+                zone2Time: formatMinutes((raceDistances.run * 0.67) / (runStats.avgVelocityRaw * 1.02) / 60),
+                zone3Pace: convertRunPace(runStats.avgVelocityRaw * 1.06),
+                zone3Hr: `${Math.round(runAvgHR * 1.02)} bpm`,
+                zone3Time: formatMinutes((raceDistances.run * 0.09) / (runStats.avgVelocityRaw * 1.06) / 60)
+            }
+        },
+        realista: {
+            swim: {
+                zone1Pace: convertSwimPace(swimStats.avgVelocityRaw * 0.88),
+                zone2Pace: convertSwimPace(swimStats.avgVelocityRaw * 1.00),
+                zone3Pace: convertSwimPace(swimStats.avgVelocityRaw * 1.05)
+            },
+            bike: {
+                zone1Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.82).toFixed(1)} km/h`,
+                zone1Hr: `${Math.round(bikeAvgHR * 0.88)} bpm`,
+                zone1Np: `${Math.round(avgPower * 0.82)}W`,
+                zone2Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 1.00).toFixed(1)} km/h`,
+                zone2Hr: `${Math.round(bikeAvgHR * 0.98)} bpm`,
+                zone2Np: `${Math.round(avgPower * 0.95)}W`,
+                zone3Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.92).toFixed(1)} km/h`,
+                zone3Hr: `${Math.round(bikeAvgHR * 0.93)} bpm`,
+                zone3Np: `${Math.round(avgPower * 0.88)}W`
+            },
+            run: {
+                zone1Pace: convertRunPace(runStats.avgVelocityRaw * 0.85),
+                zone1Hr: `${Math.round(runAvgHR * 0.90)} bpm`,
+                zone1Time: formatMinutes((raceDistances.run * 0.24) / (runStats.avgVelocityRaw * 0.85) / 60),
+                zone2Pace: convertRunPace(runStats.avgVelocityRaw * 0.98),
+                zone2Hr: `${Math.round(runAvgHR * 0.96)} bpm`,
+                zone2Time: formatMinutes((raceDistances.run * 0.67) / (runStats.avgVelocityRaw * 0.98) / 60),
+                zone3Pace: convertRunPace(runStats.avgVelocityRaw * 1.02),
+                zone3Hr: `${Math.round(runAvgHR * 0.99)} bpm`,
+                zone3Time: formatMinutes((raceDistances.run * 0.09) / (runStats.avgVelocityRaw * 1.02) / 60)
+            }
+        },
+        conservador: {
+            swim: {
+                zone1Pace: convertSwimPace(swimStats.avgVelocityRaw * 0.85),
+                zone2Pace: convertSwimPace(swimStats.avgVelocityRaw * 0.95),
+                zone3Pace: convertSwimPace(swimStats.avgVelocityRaw * 1.00)
+            },
+            bike: {
+                zone1Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.78).toFixed(1)} km/h`,
+                zone1Hr: `${Math.round(bikeAvgHR * 0.85)} bpm`,
+                zone1Np: `${Math.round(avgPower * 0.78)}W`,
+                zone2Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.95).toFixed(1)} km/h`,
+                zone2Hr: `${Math.round(bikeAvgHR * 0.95)} bpm`,
+                zone2Np: `${Math.round(avgPower * 0.90)}W`,
+                zone3Speed: `${((bikeStats.avgVelocityRaw * 3.6) * 0.88).toFixed(1)} km/h`,
+                zone3Hr: `${Math.round(bikeAvgHR * 0.90)} bpm`,
+                zone3Np: `${Math.round(avgPower * 0.85)}W`
+            },
+            run: {
+                zone1Pace: convertRunPace(runStats.avgVelocityRaw * 0.82),
+                zone1Hr: `${Math.round(runAvgHR * 0.88)} bpm`,
+                zone1Time: formatMinutes((raceDistances.run * 0.24) / (runStats.avgVelocityRaw * 0.82) / 60),
+                zone2Pace: convertRunPace(runStats.avgVelocityRaw * 0.95),
+                zone2Hr: `${Math.round(runAvgHR * 0.94)} bpm`,
+                zone2Time: formatMinutes((raceDistances.run * 0.67) / (runStats.avgVelocityRaw * 0.95) / 60),
+                zone3Pace: convertRunPace(runStats.avgVelocityRaw * 0.98),
+                zone3Hr: `${Math.round(runAvgHR * 0.97)} bpm`,
+                zone3Time: formatMinutes((raceDistances.run * 0.09) / (runStats.avgVelocityRaw * 0.98) / 60)
+            }
+        }
+    };
+}
+
+// ════════════════════════════════════════════════════════════════════════════════════════
 // CÁLCULO DOS 3 CENÁRIOS DE PROVA (Template Passo 4)
 // ════════════════════════════════════════════════════════════════════════════════════════
 
@@ -1293,84 +1463,132 @@ function generateIronmanReport(csvData, athleteName, eventName, eventDate, event
     html = html.replace(/{{RACE_DISTANCE_RUN}}/g, `${raceDistances.run}km`);
 
     // ─────────────────────────────────────────────────────────────────────────────
+    // PASSO 6.5: CALCULAR FC, NP E ZONAS DINÂMICAS
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    console.log('🔬 Calculando FC, NP e Zonas dinâmicas...');
+
+    const hrRanges = calculateHeartRateRanges(swim, bike, run);
+    const powerRanges = calculatePowerRanges(bike);
+    const zoneValues = calculateZoneValues(swimStats, bikeStats, runStats, swim, bike, run, raceDistances);
+
+    // ─────────────────────────────────────────────────────────────────────────────
     // PLACEHOLDERS JAVASCRIPT (para interatividade)
     // ─────────────────────────────────────────────────────────────────────────────
     // Estes são usados no objeto scenarios do JavaScript no template
     // Precisam ser preenchidos também para a interatividade funcionar
 
-    // META A - JavaScript
+    // META A - JavaScript (VALORES DINÂMICOS BASEADOS NO CSV)
     html = html.replace(/{{JS_AGRESSIVO_SWIM_PACE}}/g, scenarios.agressivo.swimPace);
     html = html.replace(/{{JS_AGRESSIVO_SWIM_TIME}}/g, scenarios.agressivo.swimTime);
-    html = html.replace(/{{JS_AGRESSIVO_SWIM_HR}}/g, '132-142 bpm');
+    html = html.replace(/{{JS_AGRESSIVO_SWIM_HR}}/g, hrRanges.agressivo.swim);
     html = html.replace(/{{JS_AGRESSIVO_BIKE_SPEED}}/g, scenarios.agressivo.bikeSpeed);
     html = html.replace(/{{JS_AGRESSIVO_BIKE_TIME}}/g, scenarios.agressivo.bikeTime);
-    html = html.replace(/{{JS_AGRESSIVO_BIKE_HR}}/g, '138-148 bpm');
-    html = html.replace(/{{JS_AGRESSIVO_BIKE_NP}}/g, '180-190W');
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_HR}}/g, hrRanges.agressivo.bike);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_NP}}/g, powerRanges.agressivo);
     html = html.replace(/{{JS_AGRESSIVO_RUN_PACE}}/g, scenarios.agressivo.runPace);
     html = html.replace(/{{JS_AGRESSIVO_RUN_TIME}}/g, scenarios.agressivo.runTime);
-    html = html.replace(/{{JS_AGRESSIVO_RUN_HR}}/g, '170-177 bpm');
+    html = html.replace(/{{JS_AGRESSIVO_RUN_HR}}/g, hrRanges.agressivo.run);
 
-    // META B - JavaScript
+    // META B - JavaScript (VALORES DINÂMICOS BASEADOS NO CSV)
     html = html.replace(/{{JS_REALISTA_SWIM_PACE}}/g, scenarios.realista.swimPace);
     html = html.replace(/{{JS_REALISTA_SWIM_TIME}}/g, scenarios.realista.swimTime);
-    html = html.replace(/{{JS_REALISTA_SWIM_HR}}/g, '128-138 bpm');
+    html = html.replace(/{{JS_REALISTA_SWIM_HR}}/g, hrRanges.realista.swim);
     html = html.replace(/{{JS_REALISTA_BIKE_SPEED}}/g, scenarios.realista.bikeSpeed);
     html = html.replace(/{{JS_REALISTA_BIKE_TIME}}/g, scenarios.realista.bikeTime);
-    html = html.replace(/{{JS_REALISTA_BIKE_HR}}/g, '133-143 bpm');
-    html = html.replace(/{{JS_REALISTA_BIKE_NP}}/g, '170-180W');
+    html = html.replace(/{{JS_REALISTA_BIKE_HR}}/g, hrRanges.realista.bike);
+    html = html.replace(/{{JS_REALISTA_BIKE_NP}}/g, powerRanges.realista);
     html = html.replace(/{{JS_REALISTA_RUN_PACE}}/g, scenarios.realista.runPace);
     html = html.replace(/{{JS_REALISTA_RUN_TIME}}/g, scenarios.realista.runTime);
-    html = html.replace(/{{JS_REALISTA_RUN_HR}}/g, '165-172 bpm');
+    html = html.replace(/{{JS_REALISTA_RUN_HR}}/g, hrRanges.realista.run);
 
-    // META C - JavaScript
+    // META C - JavaScript (VALORES DINÂMICOS BASEADOS NO CSV)
     html = html.replace(/{{JS_CONSERVADOR_SWIM_PACE}}/g, scenarios.conservador.swimPace);
     html = html.replace(/{{JS_CONSERVADOR_SWIM_TIME}}/g, scenarios.conservador.swimTime);
-    html = html.replace(/{{JS_CONSERVADOR_SWIM_HR}}/g, '125-135 bpm');
+    html = html.replace(/{{JS_CONSERVADOR_SWIM_HR}}/g, hrRanges.conservador.swim);
     html = html.replace(/{{JS_CONSERVADOR_BIKE_SPEED}}/g, scenarios.conservador.bikeSpeed);
     html = html.replace(/{{JS_CONSERVADOR_BIKE_TIME}}/g, scenarios.conservador.bikeTime);
-    html = html.replace(/{{JS_CONSERVADOR_BIKE_HR}}/g, '128-138 bpm');
-    html = html.replace(/{{JS_CONSERVADOR_BIKE_NP}}/g, '160-170W');
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_HR}}/g, hrRanges.conservador.bike);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_NP}}/g, powerRanges.conservador);
     html = html.replace(/{{JS_CONSERVADOR_RUN_PACE}}/g, scenarios.conservador.runPace);
     html = html.replace(/{{JS_CONSERVADOR_RUN_TIME}}/g, scenarios.conservador.runTime);
-    html = html.replace(/{{JS_CONSERVADOR_RUN_HR}}/g, '160-167 bpm');
+    html = html.replace(/{{JS_CONSERVADOR_RUN_HR}}/g, hrRanges.conservador.run);
 
-    // Placeholders de zonas (valores genéricos por enquanto - podem ser calculados depois)
-    const zoneDefaults = {
-        swim: { zone1: '2:00/100m', zone2: '1:50/100m', zone3: '1:45/100m' },
-        bike: { zone1Speed: '28 km/h', zone1Hr: '130 bpm', zone1Np: '160W',
-                zone2Speed: '32 km/h', zone2Hr: '140 bpm', zone2Np: '180W',
-                zone3Speed: '30 km/h', zone3Hr: '135 bpm', zone3Np: '170W' },
-        run: { zone1Pace: '5:20/km', zone1Hr: '165 bpm', zone1Time: '27min',
-               zone2Pace: '4:50/km', zone2Hr: '172 bpm', zone2Time: '68min',
-               zone3Pace: '4:40/km', zone3Hr: '175 bpm', zone3Time: '10min' }
-    };
+    // Aplicar ZONAS DINÂMICAS para todos os cenários
+    // AGRESSIVO
+    html = html.replace(/{{JS_AGRESSIVO_SWIM_ZONE1_PACE}}/g, zoneValues.agressivo.swim.zone1Pace);
+    html = html.replace(/{{JS_AGRESSIVO_SWIM_ZONE2_PACE}}/g, zoneValues.agressivo.swim.zone2Pace);
+    html = html.replace(/{{JS_AGRESSIVO_SWIM_ZONE3_PACE}}/g, zoneValues.agressivo.swim.zone3Pace);
 
-    // Aplicar defaults para todos os cenários e zonas
-    ['AGRESSIVO', 'REALISTA', 'CONSERVADOR'].forEach(scenario => {
-        html = html.replace(new RegExp(`{{JS_${scenario}_SWIM_ZONE1_PACE}}`, 'g'), zoneDefaults.swim.zone1);
-        html = html.replace(new RegExp(`{{JS_${scenario}_SWIM_ZONE2_PACE}}`, 'g'), zoneDefaults.swim.zone2);
-        html = html.replace(new RegExp(`{{JS_${scenario}_SWIM_ZONE3_PACE}}`, 'g'), zoneDefaults.swim.zone3);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE1_SPEED}}/g, zoneValues.agressivo.bike.zone1Speed);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE1_HR}}/g, zoneValues.agressivo.bike.zone1Hr);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE1_NP}}/g, zoneValues.agressivo.bike.zone1Np);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE2_SPEED}}/g, zoneValues.agressivo.bike.zone2Speed);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE2_HR}}/g, zoneValues.agressivo.bike.zone2Hr);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE2_NP}}/g, zoneValues.agressivo.bike.zone2Np);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE3_SPEED}}/g, zoneValues.agressivo.bike.zone3Speed);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE3_HR}}/g, zoneValues.agressivo.bike.zone3Hr);
+    html = html.replace(/{{JS_AGRESSIVO_BIKE_ZONE3_NP}}/g, zoneValues.agressivo.bike.zone3Np);
 
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE1_SPEED}}`, 'g'), zoneDefaults.bike.zone1Speed);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE1_HR}}`, 'g'), zoneDefaults.bike.zone1Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE1_NP}}`, 'g'), zoneDefaults.bike.zone1Np);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE2_SPEED}}`, 'g'), zoneDefaults.bike.zone2Speed);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE2_HR}}`, 'g'), zoneDefaults.bike.zone2Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE2_NP}}`, 'g'), zoneDefaults.bike.zone2Np);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE3_SPEED}}`, 'g'), zoneDefaults.bike.zone3Speed);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE3_HR}}`, 'g'), zoneDefaults.bike.zone3Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_BIKE_ZONE3_NP}}`, 'g'), zoneDefaults.bike.zone3Np);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE1_PACE}}/g, zoneValues.agressivo.run.zone1Pace);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE1_HR}}/g, zoneValues.agressivo.run.zone1Hr);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE1_TIME}}/g, zoneValues.agressivo.run.zone1Time);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE2_PACE}}/g, zoneValues.agressivo.run.zone2Pace);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE2_HR}}/g, zoneValues.agressivo.run.zone2Hr);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE2_TIME}}/g, zoneValues.agressivo.run.zone2Time);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE3_PACE}}/g, zoneValues.agressivo.run.zone3Pace);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE3_HR}}/g, zoneValues.agressivo.run.zone3Hr);
+    html = html.replace(/{{JS_AGRESSIVO_RUN_ZONE3_TIME}}/g, zoneValues.agressivo.run.zone3Time);
 
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE1_PACE}}`, 'g'), zoneDefaults.run.zone1Pace);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE1_HR}}`, 'g'), zoneDefaults.run.zone1Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE1_TIME}}`, 'g'), zoneDefaults.run.zone1Time);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE2_PACE}}`, 'g'), zoneDefaults.run.zone2Pace);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE2_HR}}`, 'g'), zoneDefaults.run.zone2Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE2_TIME}}`, 'g'), zoneDefaults.run.zone2Time);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE3_PACE}}`, 'g'), zoneDefaults.run.zone3Pace);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE3_HR}}`, 'g'), zoneDefaults.run.zone3Hr);
-        html = html.replace(new RegExp(`{{JS_${scenario}_RUN_ZONE3_TIME}}`, 'g'), zoneDefaults.run.zone3Time);
-    });
+    // REALISTA
+    html = html.replace(/{{JS_REALISTA_SWIM_ZONE1_PACE}}/g, zoneValues.realista.swim.zone1Pace);
+    html = html.replace(/{{JS_REALISTA_SWIM_ZONE2_PACE}}/g, zoneValues.realista.swim.zone2Pace);
+    html = html.replace(/{{JS_REALISTA_SWIM_ZONE3_PACE}}/g, zoneValues.realista.swim.zone3Pace);
+
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE1_SPEED}}/g, zoneValues.realista.bike.zone1Speed);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE1_HR}}/g, zoneValues.realista.bike.zone1Hr);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE1_NP}}/g, zoneValues.realista.bike.zone1Np);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE2_SPEED}}/g, zoneValues.realista.bike.zone2Speed);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE2_HR}}/g, zoneValues.realista.bike.zone2Hr);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE2_NP}}/g, zoneValues.realista.bike.zone2Np);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE3_SPEED}}/g, zoneValues.realista.bike.zone3Speed);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE3_HR}}/g, zoneValues.realista.bike.zone3Hr);
+    html = html.replace(/{{JS_REALISTA_BIKE_ZONE3_NP}}/g, zoneValues.realista.bike.zone3Np);
+
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE1_PACE}}/g, zoneValues.realista.run.zone1Pace);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE1_HR}}/g, zoneValues.realista.run.zone1Hr);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE1_TIME}}/g, zoneValues.realista.run.zone1Time);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE2_PACE}}/g, zoneValues.realista.run.zone2Pace);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE2_HR}}/g, zoneValues.realista.run.zone2Hr);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE2_TIME}}/g, zoneValues.realista.run.zone2Time);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE3_PACE}}/g, zoneValues.realista.run.zone3Pace);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE3_HR}}/g, zoneValues.realista.run.zone3Hr);
+    html = html.replace(/{{JS_REALISTA_RUN_ZONE3_TIME}}/g, zoneValues.realista.run.zone3Time);
+
+    // CONSERVADOR
+    html = html.replace(/{{JS_CONSERVADOR_SWIM_ZONE1_PACE}}/g, zoneValues.conservador.swim.zone1Pace);
+    html = html.replace(/{{JS_CONSERVADOR_SWIM_ZONE2_PACE}}/g, zoneValues.conservador.swim.zone2Pace);
+    html = html.replace(/{{JS_CONSERVADOR_SWIM_ZONE3_PACE}}/g, zoneValues.conservador.swim.zone3Pace);
+
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE1_SPEED}}/g, zoneValues.conservador.bike.zone1Speed);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE1_HR}}/g, zoneValues.conservador.bike.zone1Hr);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE1_NP}}/g, zoneValues.conservador.bike.zone1Np);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE2_SPEED}}/g, zoneValues.conservador.bike.zone2Speed);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE2_HR}}/g, zoneValues.conservador.bike.zone2Hr);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE2_NP}}/g, zoneValues.conservador.bike.zone2Np);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE3_SPEED}}/g, zoneValues.conservador.bike.zone3Speed);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE3_HR}}/g, zoneValues.conservador.bike.zone3Hr);
+    html = html.replace(/{{JS_CONSERVADOR_BIKE_ZONE3_NP}}/g, zoneValues.conservador.bike.zone3Np);
+
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE1_PACE}}/g, zoneValues.conservador.run.zone1Pace);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE1_HR}}/g, zoneValues.conservador.run.zone1Hr);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE1_TIME}}/g, zoneValues.conservador.run.zone1Time);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE2_PACE}}/g, zoneValues.conservador.run.zone2Pace);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE2_HR}}/g, zoneValues.conservador.run.zone2Hr);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE2_TIME}}/g, zoneValues.conservador.run.zone2Time);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE3_PACE}}/g, zoneValues.conservador.run.zone3Pace);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE3_HR}}/g, zoneValues.conservador.run.zone3Hr);
+    html = html.replace(/{{JS_CONSERVADOR_RUN_ZONE3_TIME}}/g, zoneValues.conservador.run.zone3Time);
 
     console.log('✅ Todos os placeholders substituídos!');
     console.log('🎉 Relatório gerado com sucesso!');
